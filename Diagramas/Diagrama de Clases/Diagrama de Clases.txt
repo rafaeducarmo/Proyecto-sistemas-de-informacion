@@ -27,17 +27,14 @@ enum RolUsuario {
 enum EstadoPublicacion {
     DISPONIBLE
     RESERVADO
-    VENDIDO
-    PAUSADO
     ELIMINADO_POR_ADMIN
 }
 
-enum EstadoTransaccion {
+enum EstadoSolicitud {
     SOLICITADO
-    EN_NEGOCIACION
+    EN_PROCESO
     ACEPTADO
     ENTREGADO
-    CANCELADO
     RECHAZADO
 }
 
@@ -64,6 +61,7 @@ class Usuario {
     + actualizarPerfil()
     + verMiReputacion()
     + banearUsuario()
+    + solicitar()
 }
 
 class Publicacion {
@@ -71,7 +69,6 @@ class Publicacion {
     - String titulo
     - String autor
     - String descripcion
-    - Double precio
     - CondicionLibro condicion
     - List<String> imagenesUrl
     - Date fechaCreacion
@@ -79,8 +76,7 @@ class Publicacion {
     + crear()
     + editar()
     + eliminar()
-    + pausar()
-    + marcarReservado()
+    + cambiarEstado()
 }
 
 class Categoria {
@@ -91,13 +87,12 @@ class Categoria {
     + crearCategoria()
 }
 
-class Transaccion {
+class Solicitud {
     - String id
     - Date fechaSolicitud
     - Date fechaCierre
-    - EstadoTransaccion estadoActual
+    - EstadoSolicitud estadoActual
     - String metodoPago
-    + solicitar()
     + aceptarSolicitud()
     + rechazarSolicitud()
     + confirmarEntrega()
@@ -131,18 +126,25 @@ class Reporte {
     + resolverReporte()
 }
 
+class Donacion {
+    - Float monto
+    - Usuario usuario
+    - Date fechaDonacion
+}
+
 ' --- RELACIONES ---
 Usuario "1" -- "0..*" Publicacion : Vendedor >
-Usuario "1" -- "0..*" Transaccion : Comprador >
-Usuario "1" -- "0..*" Transaccion : Vendedor >
+Usuario "1" -- "0..*" Solicitud : Comprador >
+Usuario "1" -- "0..*" Solicitud : Vendedor >
 Usuario "1" -- "0..*" Reporte : Genera >
 Usuario "1" -- "0..*" Resena : Recibe >
 
 Publicacion "*" -- "1" Categoria : Clasificada en >
 Publicacion "1" -- "0..*" Reporte : Es reportada en <
 
-Transaccion "1" -- "1" Publicacion : Involucra >
-Transaccion "1" *-- "0..*" Mensaje : Contiene >
-Transaccion "1" -- "0..1" Resena : Genera >
+Solicitud "1" -- "1" Publicacion : Involucra >
+Solicitud "1" *-- "0..*" Mensaje : Contiene >
+Solicitud "1" -- "0..1" Resena : Genera >
 
+Donacion "0..*" -- "1" Usuario : Contiene >
 @enduml

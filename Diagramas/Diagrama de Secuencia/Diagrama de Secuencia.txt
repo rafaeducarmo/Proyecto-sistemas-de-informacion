@@ -1,0 +1,77 @@
+@startuml
+autonumber
+skinparam sequence {
+    ArrowColor #212121
+    LifeLineBorderColor #E65100
+    LifeLineBackgroundColor #FFE0B2
+    ParticipantBorderColor #E65100
+    ParticipantBackgroundColor White
+    ParticipantFontColor Black
+    ParticipantFontSize 14
+    ActorBackgroundColor #FF9800
+    ActorBorderColor Black
+    NoteBackgroundColor #FAFAFA
+    NoteBorderColor #9E9E9E
+}
+
+' --- PARTICIPANTES ---
+actor "Usuario (Comprador)" as Comp
+participant ":VistaDetalleLibro" as UI
+participant ":ControladorTransaccion" as Ctrl
+participant ":ServicioNotificaciones" as Notif
+database ":Firestore DB" as DB
+actor "Usuario (Vendedor)" as Vend
+
+== 1. Descubrimiento y Verificación (08, 16) ==
+Comp -> UI : Ver Detalle Libro ("Cálculo II")
+UI -> Ctrl : obtenerInfoVendedor(idVendedor)
+Ctrl -> DB : consulta(Usuario, idVendedor)
+DB --> Ctrl : datosUsuario + reputacionPromedio
+Ctrl --> UI : Mostrar: "Vendedor: Juan (4.8/5 estrellas)"
+
+== 2. Solicitud de Intercambio (11) ==
+Comp -> UI : Clic en "Solicitar Intercambio"
+UI -> Ctrl : crearTransaccion(idLibro, idComp, idVend)
+Ctrl -> DB : crear(Transaccion, estado="SOLICITADO")
+Ctrl -> Notif : enviarNotificacion(idVend, "Nueva Oferta")
+Notif -->> Vend : Push: "¡Alguien quiere tu libro!"
+
+== 3. Negociación y Reserva (12, 14) ==
+Vend -> UI : Revisar Solicitud
+UI -> Ctrl : aceptarSolicitud(idTransaccion)
+Ctrl -> DB : actualiza(Transaccion, estado="EN_NEGOCIACION")
+Ctrl -> DB : actualiza(Publicacion, estado="RESERVADO")
+note right
+  El libro desaparece de las búsquedas públicas
+  para evitar duplicidad de solicitudes.
+end note
+Ctrl -> UI : Habilitar Módulo de Chat
+Ctrl -> Notif : notificar(idComp, "Solicitud Aceptada")
+
+== 4. Comunicación Segura (13) ==
+loop Mientras dure la negociación
+    Comp -> UI : Enviar Mensaje("¿Nos vemos en el Samán?")
+    UI -> Ctrl : enviarMensaje(txt)
+    Ctrl -> DB : guarda(Mensaje, coleccion="Chat_TransaccionID")
+    DB -->> Vend : Sincronización en tiempo real
+end
+
+== 5. Encuentro y Entrega (12, 19) ==
+note over Comp, Vend : Encuentro físico en la Universidad
+Comp -> UI : Escanear QR / Clic "Confirmar Recepción"
+UI -> Ctrl : validarEntrega()
+Ctrl -> DB : actualiza(Transaccion, estado="ENTREGADO")
+Ctrl -> DB : actualiza(Publicacion, estado="VENDIDO")
+Ctrl -> DB : registrarHistorial(idComp, idVend)
+
+== 6. Feedback Obligatorio (15, 16) ==
+Ctrl --> UI : Desplegar Modal "Calificar a Juan"
+Comp -> UI : Selecciona 5 Estrellas + Comentario
+UI -> Ctrl : enviarReseña(estrellas, comentario)
+Ctrl -> DB : guarda(Reseña)
+Ctrl -> DB : recalcularReputacionUsuario(idVendedor)
+DB --> Ctrl : NuevaReputacion = 4.9
+Ctrl --> UI : Mostrar "¡Transacción Exitosa!"
+
+@enduml
+

@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "303969148042",
+    "project_id": "metroswap-78daf",
+    "storage_bucket": "metroswap-78daf.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:303969148042:android:d9b0569d4e2ff1e99f6173",
+        "android_client_info": {
+          "package_name": "com.example.metroswap"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCWJ9aPSrzpxvi4O-ggLCymxNFrudGyB6s"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

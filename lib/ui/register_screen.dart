@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
-import '../services/auth_service.dart'; 
-import 'register_screen.dart'; // Importante para la navegación
+import '../services/auth_service.dart';
 
-class LoginScreen extends StatefulWidget {
-  const LoginScreen({super.key});
+class RegisterScreen extends StatefulWidget {
+  const RegisterScreen({super.key});
 
   @override
-  State<LoginScreen> createState() => _LoginScreenState();
+  State<RegisterScreen> createState() => _RegisterScreenState();
 }
 
-class _LoginScreenState extends State<LoginScreen> {
+class _RegisterScreenState extends State<RegisterScreen> {
+  // Controladores para capturar los datos del estudiante
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final AuthService _authService = AuthService();
@@ -24,6 +24,11 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      // Botón para volver al Login
+      appBar: AppBar(
+        title: const Text('Registro MetroSwap'),
+        backgroundColor: Colors.transparent,
+      ),
       body: Center(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(24.0),
@@ -31,17 +36,18 @@ class _LoginScreenState extends State<LoginScreen> {
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              const Icon(Icons.menu_book_rounded, size: 80, color: Colors.orange),
-              const SizedBox(height: 16),
+              const Icon(Icons.person_add_alt_1_rounded, size: 80, color: Colors.orange),
+              const SizedBox(height: 24),
               const Text(
-                'MetroSwap',
+                'Crea tu cuenta UNIMET',
                 textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold),
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
               ),
-              const SizedBox(height: 48),
+              const SizedBox(height: 32),
+
+              // Campo de Correo
               TextField(
                 controller: _emailController,
-                keyboardType: TextInputType.emailAddress,
                 decoration: const InputDecoration(
                   labelText: 'Correo Institucional (@unimet.edu.ve)',
                   prefixIcon: Icon(Icons.email_outlined),
@@ -49,22 +55,27 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
               ),
               const SizedBox(height: 16),
+
+              // Campo de Contraseña
               TextField(
                 controller: _passwordController,
                 obscureText: true,
                 decoration: const InputDecoration(
-                  labelText: 'Contraseña',
+                  labelText: 'Contraseña (mín. 6 caracteres)',
                   prefixIcon: Icon(Icons.lock_outline),
                   border: OutlineInputBorder(),
                 ),
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: 32),
+
+              // Botón de Registro
               FilledButton(
                 onPressed: () async {
                   String email = _emailController.text.trim();
                   String password = _passwordController.text.trim();
 
-                  String? error = await _authService.iniciarSesion(email, password);
+                  // Llamamos al servicio para registrar en Firebase
+                  String? error = await _authService.registrarEstudiante(email, password);
 
                   if (error != null) {
                     ScaffoldMessenger.of(context).showSnackBar(
@@ -73,25 +84,16 @@ class _LoginScreenState extends State<LoginScreen> {
                   } else {
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(
-                        content: Text("¡Bienvenido Estudiante! Acceso concedido."),
+                        content: Text("¡Cuenta creada con éxito! Ya puedes iniciar sesión."),
                         backgroundColor: Colors.green,
                       ),
                     );
+                    // Volver al Login automáticamente
+                    Navigator.pop(context);
                   }
                 },
                 style: FilledButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 16)),
-                child: const Text('Iniciar Sesión', style: TextStyle(fontSize: 16)),
-              ),
-              const SizedBox(height: 16),
-              // PASO 1: Botón de navegación al Registro
-              TextButton(
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => const RegisterScreen()),
-                  );
-                },
-                child: const Text('¿No tienes cuenta? Regístrate aquí'),
+                child: const Text('Crear Cuenta', style: TextStyle(fontSize: 16)),
               ),
             ],
           ),

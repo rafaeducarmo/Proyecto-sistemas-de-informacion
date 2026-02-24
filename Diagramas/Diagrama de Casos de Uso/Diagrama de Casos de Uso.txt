@@ -1,0 +1,142 @@
+@startuml
+left to right direction
+skinparam packageStyle rectangle
+
+' --- ESTILO VISUAL METROSWAP (Naranja, Negro, Blanco) ---
+skinparam usecase {
+    BackgroundColor White
+    BorderColor #E65100
+    BorderThickness 1.5
+    ArrowColor #212121
+    FontColor Black
+    FontName Arial
+}
+skinparam actor {
+    BackgroundColor #FF9800
+    BorderColor Black
+    FontColor Black
+    FontName Arial
+}
+skinparam package {
+    BorderColor Black
+    FontColor Black
+    BackgroundColor #FAFAFA
+    FontName Arial
+}
+
+' --- ACTORES ---
+actor "Usuario No Autenticado" as Guest
+actor "Estudiante/Profesor" as User
+actor "Administrador" as Admin
+actor "Sistema de Pagos" as PaymentSys
+actor "Servicio de Correo Unimet" as EmailSys
+
+Guest <|-- User
+User <|-- Admin
+
+rectangle "MetroSwap (Sistema de Intercambio Unimet)" {
+
+    ' --- 1. ACCESO ---
+    package "1. Gestión de Acceso" {
+        usecase "[1.1] Registrarse (Correo Unimet)" as UC_Reg
+        usecase "[1.2] Validar Dominio @unimet" as UC_ValEmail
+        usecase "[1.3] Iniciar Sesión" as UC_Login
+        usecase "[1.4] Recuperar Contraseña" as UC_Recover
+        usecase "[1.5] Gestionar Perfil Académico" as UC_Profile
+        usecase "[1.6] Ver Mi Reputación" as UC_MyRep
+    }
+
+    ' --- 2. INVENTARIO ---
+    package "2. Inventario y Publicaciones" {
+        usecase "[2.1] Crear Publicación" as UC_CreatePub
+        usecase "[2.2] Subir Fotos del Recurso" as UC_UploadPhoto
+        usecase "[2.3] Editar/Borrar Publicación" as UC_EditPub
+        usecase "[2.4] Categorizar (Materia/Estado)" as UC_Category
+        usecase "[2.5] Reportar Publicación (Infracción)" as UC_Report
+    }
+
+    ' --- 3. CATÁLOGO ---
+    package "3. Catálogo" {
+        usecase "[3.1] Consultar Libros" as UC_Search
+        usecase "[3.2] Aplicar Filtros" as UC_Filter
+        usecase "[3.3] Ver Detalle de Recurso" as UC_Detail
+    }
+
+    ' --- 4. CORE TRANSACCIONES ---
+    package "4. Core de Intercambio" {
+        usecase "[4.1] Solicitar Intercambio" as UC_Request
+        usecase "[4.2] Gestionar Estado Transacción" as UC_ManageTrans
+        usecase "[4.3] Aceptar/Rechazar Solicitud" as UC_Decide
+        usecase "[4.4] Chatear con Usuario" as UC_Chat
+        usecase "[4.5] Confirmar Entrega" as UC_Confirm
+        usecase "[4.6] Procesar Pago" as UC_Pay
+        usecase "[4.7] Ver Historial de Intercambios" as UC_History
+    }
+
+    ' --- 5. FEEDBACK ---
+    package "5. Feedback" {
+        usecase "[5.1] Calificar (Estrellas)" as UC_Rate
+        usecase "[5.2] Dejar Comentario Texto" as UC_Comment
+    }
+
+    ' --- 6. ADMIN ---
+    package "6. Administración" {
+        usecase "[6.1] Ver Dashboard Métricas" as UC_Metrics
+        usecase "[6.2] Moderar Contenido" as UC_Mod
+        usecase "[6.3] Gestionar Usuarios (Ban/Roles)" as UC_ManageUsers
+        usecase "[6.4] Gestionar Categorías/Carreras" as UC_ManageCats
+    }
+}
+
+' --- RELACIONES Y FLUJOS ---
+
+' Invitado
+Guest --> UC_Reg
+Guest --> UC_Login
+Guest --> UC_Search
+
+' Externos (Derecha)
+UC_Reg ..> UC_ValEmail : <<include>>
+UC_Reg ..> EmailSys : <<interact>>
+UC_Login <.. UC_Recover : <<extend>>
+UC_Search <.. UC_Filter : <<extend>>
+UC_Search <.. UC_Detail : <<extend>>
+
+' Usuario Autenticado
+User --> UC_Profile
+User --> UC_MyRep
+User --> UC_CreatePub
+User --> UC_EditPub
+User --> UC_History
+User --> UC_Report
+User --> UC_Request
+User --> UC_ManageTrans
+User --> UC_Chat
+
+' Detalles Publicación
+UC_CreatePub ..> UC_UploadPhoto : <<include>>
+UC_CreatePub ..> UC_Category : <<include>>
+
+' Flujo Transacción
+UC_Request ..> UC_Login : <<include>>
+UC_ManageTrans <|-- UC_Decide
+UC_ManageTrans <|-- UC_Confirm
+
+' Confirmación y Pagos
+UC_Confirm ..> UC_Pay : <<include>>
+UC_Pay ..> PaymentSys : <<interact>>
+
+' Feedback completo
+UC_Confirm ..> UC_Rate : <<include>>
+UC_Rate ..> UC_Comment : <<include>>
+
+' Admin
+Admin --> UC_Metrics
+Admin --> UC_Mod
+Admin --> UC_ManageUsers
+Admin --> UC_ManageCats
+
+' Moderación Admin
+UC_Mod <.. UC_EditPub : <<extend>> (Eliminar)
+
+@enduml

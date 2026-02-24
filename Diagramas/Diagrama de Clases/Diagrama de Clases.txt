@@ -1,0 +1,150 @@
+@startuml
+skinparam classAttributeIconSize 0
+skinparam linetype ortho
+
+' --- ESTILO VISUAL METROSWAP ---
+skinparam class {
+    BackgroundColor White
+    BorderColor #E65100
+    ArrowColor #212121
+    HeaderBackgroundColor #FF9800
+    HeaderFontColor Black
+    FontName Arial
+}
+skinparam enum {
+    BackgroundColor #FFF3E0
+    BorderColor #E65100
+    ArrowColor #212121
+    HeaderBackgroundColor #FFE0B2
+}
+
+enum RolUsuario {
+    ESTUDIANTE
+    PROFESOR
+    ADMINISTRADOR
+}
+
+enum EstadoPublicacion {
+    DISPONIBLE
+    RESERVADO
+    ELIMINADO_POR_ADMIN
+}
+
+enum EstadoSolicitud {
+    SOLICITADO
+    EN_PROCESO
+    ACEPTADO
+    ENTREGADO
+    RECHAZADO
+}
+
+enum CondicionLibro {
+    NUEVO
+    COMO_NUEVO
+    USADO_BUENO
+    USADO_ACEPTABLE
+}
+
+class Usuario {
+    - String uid
+    - String nombreCompleto
+    - String correoUnimet
+    - String carrera
+    - String urlFotoPerfil
+    - Float reputacionPromedio
+    - RolUsuario rol
+    - Date fechaRegistro
+    - Boolean activo
+    + registrar()
+    + login()
+    + recuperarContrasena()
+    + actualizarPerfil()
+    + verMiReputacion()
+    + banearUsuario()
+    + solicitar()
+}
+
+class Publicacion {
+    - String id
+    - String titulo
+    - String autor
+    - String descripcion
+    - CondicionLibro condicion
+    - List<String> imagenesUrl
+    - Date fechaCreacion
+    - EstadoPublicacion estado
+    + crear()
+    + editar()
+    + eliminar()
+    + cambiarEstado()
+}
+
+class Categoria {
+    - String id
+    - String nombre
+    - String codigoMateria
+    - Boolean activa
+    + crearCategoria()
+}
+
+class Solicitud {
+    - String id
+    - Date fechaSolicitud
+    - Date fechaCierre
+    - EstadoSolicitud estadoActual
+    - String metodoPago
+    + aceptarSolicitud()
+    + rechazarSolicitud()
+    + confirmarEntrega()
+    + cancelar()
+}
+
+class Mensaje {
+    - String id
+    - String contenido
+    - Date timestamp
+    - Boolean leido
+    + enviar()
+    + marcarLeido()
+}
+
+class Resena {
+    - String id
+    - Integer estrellas (1-5)
+    - String comentario
+    - Date fecha
+    + guardar()
+    + reportarResena()
+}
+
+class Reporte {
+    - String id
+    - String motivo
+    - Date fechaReporte
+    - String estado
+    + crearReporte()
+    + resolverReporte()
+}
+
+class Donacion {
+    - Float monto
+    - Usuario usuario
+    - Date fechaDonacion
+}
+
+' --- RELACIONES ---
+Usuario "1" -- "0..*" Publicacion : Vendedor >
+Usuario "1" -- "0..*" Solicitud : Comprador >
+Usuario "1" -- "0..*" Solicitud : Vendedor >
+Usuario "1" -- "0..*" Reporte : Genera >
+Usuario "1" -- "0..*" Resena : Recibe >
+
+Publicacion "*" -- "1" Categoria : Clasificada en >
+Publicacion "1" -- "0..*" Reporte : Es reportada en <
+
+Solicitud "1" -- "1" Publicacion : Involucra >
+Solicitud "1" *-- "0..*" Mensaje : Contiene >
+Solicitud "1" -- "0..1" Resena : Genera >
+
+Donacion "0..*" -- "1" Usuario : Contiene >
+@enduml

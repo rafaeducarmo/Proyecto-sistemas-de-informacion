@@ -73,6 +73,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 onPressed: () async {
                   String email = _emailController.text.trim();
                   String password = _passwordController.text.trim();
+                  
 
                   // Llamamos al servicio para registrar en Firebase
                   String? error = await _authService.registrarEstudiante(email, password);

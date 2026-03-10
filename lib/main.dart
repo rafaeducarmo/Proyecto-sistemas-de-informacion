@@ -3,6 +3,8 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:provider/provider.dart';
 import 'firebase_options.dart';
+import 'package:metroswap/ui/main_screen.dart';
+import 'ui/admin_screen.dart';
 
 // Rutas a tus pantallas y providers
 import 'ui/login_screen.dart';
@@ -43,8 +45,14 @@ class MetroSwapApp extends StatelessWidget {
             );
           }
           if (snapshot.hasData) {
-            // Si el usuario ya inició sesión
-            return const HomeScreen();
+            // Evaluamos si el correo es el del administrador
+            final user = snapshot.data!;
+            if (user.email == 'admin@unimet.edu.ve') {
+              return const AdminScreen(); // Lo mandamos al panel de control
+            }
+            
+            // Si es un estudiante normal, va al menú principal
+            return const MainScreen(); 
           }
           // Si el usuario no ha iniciado sesión
           return const LoginScreen();

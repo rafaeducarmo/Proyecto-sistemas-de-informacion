@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import '../services/auth_service.dart'; 
 import 'register_screen.dart'; // Importante para la navegación
-import 'user_profile_screen.dart'; // Pantalla de perfil de usuario
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -68,22 +67,15 @@ class _LoginScreenState extends State<LoginScreen> {
                   String? error = await _authService.iniciarSesion(email, password);
 
                   if (error != null) {
-                    if (!mounted) return;
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(content: Text(error), backgroundColor: Colors.red),
                     );
                   } else {
-                    if (!mounted) return;
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(
                         content: Text("¡Bienvenido Estudiante! Acceso concedido."),
                         backgroundColor: Colors.green,
                       ),
-                    );
-                    // Redirigir a la pantalla de perfil
-                    Navigator.pushReplacement(
-                      context,
-                      MaterialPageRoute(builder: (context) => const UserProfileScreen()),
                     );
                   }
                 },

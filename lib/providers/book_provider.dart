@@ -1,6 +1,5 @@
-import 'dart:io';
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
-// Rutas exactas basadas en tu árbol de carpetas
 import '../Models/book_model.dart';
 import '../services/book_service.dart';
 import '../services/storage_service.dart';
@@ -12,32 +11,28 @@ class BookProvider with ChangeNotifier {
   final StorageService _storageService = StorageService();
   final BookService _bookService = BookService();
 
-  // Función conectada a tus modelos y servicios
   Future<bool> uploadBook({
     required String title,
-    required String description, // Cambiado para coincidir con tu Book model
+    required String description, 
     required String category,
     required String condition,
-    required File imageFile,
+    required Uint8List imageBytes, // <-- Cambiado de File a Uint8List
     required String ownerId,
   }) async {
     _isLoading = true;
     notifyListeners();
 
     try {
-      // 1. Generamos un nombre único para la foto usando la fecha y hora actual
       String fileName = 'book_${DateTime.now().millisecondsSinceEpoch}.jpg';
 
-      // 2. Subimos la imagen usando el método exacto de tu StorageService
+      // Pasamos los bytes al Storage
       String imageUrl = await _storageService.uploadBookImage(
-        imageFile,
+        imageBytes,
         fileName,
       );
 
-      // 3. Generamos un ID único para el documento en Firestore
       String bookId = DateTime.now().millisecondsSinceEpoch.toString();
 
-      // 4. Creamos el objeto instanciando tu clase Book
       Book newBook = Book(
         id: bookId,
         ownerId: ownerId,
@@ -50,18 +45,16 @@ class BookProvider with ChangeNotifier {
         createdAt: DateTime.now(),
       );
 
-      // 5. Guardamos en Firestore (Asegúrate de tener un método addBook en book_service.dart)
-      // Descomenta la siguiente línea cuando tu BookService tenga la función lista
       await _bookService.createBook(newBook);
 
       _isLoading = false;
       notifyListeners();
-      return true; // Todo fue un éxito
+      return true; 
     } catch (e) {
       print("Error en provider: $e");
       _isLoading = false;
       notifyListeners();
-      return false; // Hubo un fallo
+      return false; 
     }
   }
 }

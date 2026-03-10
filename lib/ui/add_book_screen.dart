@@ -1,4 +1,4 @@
-import 'dart:io';
+import 'dart:typed_data'; // <-- Para la memoria
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
@@ -19,7 +19,8 @@ class _AddBookScreenState extends State<AddBookScreen> {
 
   String _selectedCategory = 'Ingeniería';
   String _selectedCondition = 'Nuevo';
-  File? _imageFile;
+  
+  Uint8List? _imageBytes; // <-- Guardamos la foto en bytes
   final ImagePicker _picker = ImagePicker();
 
   Future<void> _pickImage() async {
@@ -27,47 +28,48 @@ class _AddBookScreenState extends State<AddBookScreen> {
       source: ImageSource.gallery,
     );
     if (pickedFile != null) {
+      // Leemos los bytes para que funcione en Web
+      final bytes = await pickedFile.readAsBytes();
       setState(() {
-        _imageFile = File(pickedFile.path);
+        _imageBytes = bytes;
       });
     }
   }
 
   void _submitForm() async {
-    if (_formKey.currentState!.validate() && _imageFile != null) {
+    if (_formKey.currentState!.validate() && _imageBytes != null) {
       final provider = Provider.of<BookProvider>(context, listen: false);
 
-      final currentUserId =
-          FirebaseAuth.instance.currentUser?.uid ?? 'usuario_desconocido';
+      final currentUserId = FirebaseAuth.instance.currentUser?.uid ?? 'usuario_desconocido';
 
       bool success = await provider.uploadBook(
         title: _titleController.text,
         description: _descriptionController.text,
         category: _selectedCategory,
         condition: _selectedCondition,
-        imageFile: _imageFile!,
+        imageBytes: _imageBytes!, // <-- Pasamos los bytes
         ownerId: currentUserId,
       );
 
       if (success && mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('¡Material publicado con éxito en MetroSwap!'),
-          ),
+          const SnackBar(content: Text('¡Material publicado con éxito en MetroSwap!'), backgroundColor: Colors.green,),
         );
-        Navigator.pop(context);
+        // Regresamos a la pestaña de inicio modificando el índice o haciendo pop según lo necesites
+        // Como estamos en un BottomNavigationBar, lo mejor es limpiar el form
+        setState(() {
+          _titleController.clear();
+          _descriptionController.clear();
+          _imageBytes = null;
+        });
       } else if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Error al publicar el material. Revisa tu conexión.'),
-          ),
+          const SnackBar(content: Text('Error al publicar el material. Revisa tu conexión.'), backgroundColor: Colors.red,),
         );
       }
-    } else if (_imageFile == null) {
+    } else if (_imageBytes == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Por favor, selecciona una foto del material.'),
-        ),
+        const SnackBar(content: Text('Por favor, selecciona una foto del material.'), backgroundColor: Colors.orange,),
       );
     }
   }
@@ -94,28 +96,23 @@ class _AddBookScreenState extends State<AddBookScreen> {
                         decoration: BoxDecoration(
                           color: Colors.grey[200],
                           borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: Colors.grey.shade400)
                         ),
-                        child: _imageFile != null
+                        // Usamos Image.memory en lugar de Image.file
+                        child: _imageBytes != null
                             ? ClipRRect(
                                 borderRadius: BorderRadius.circular(12),
-                                child: Image.file(
-                                  _imageFile!,
+                                child: Image.memory(
+                                  _imageBytes!,
                                   fit: BoxFit.cover,
                                 ),
                               )
                             : const Column(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
-                                  Icon(
-                                    Icons.add_a_photo,
-                                    size: 50,
-                                    color: Colors.grey,
-                                  ),
+                                  Icon(Icons.add_a_photo, size: 50, color: Colors.grey),
                                   SizedBox(height: 8),
-                                  Text(
-                                    "Toca para subir una foto",
-                                    style: TextStyle(color: Colors.grey),
-                                  ),
+                                  Text("Toca para subir una foto", style: TextStyle(color: Colors.grey)),
                                 ],
                               ),
                       ),
@@ -124,10 +121,7 @@ class _AddBookScreenState extends State<AddBookScreen> {
 
                     TextFormField(
                       controller: _titleController,
-                      decoration: const InputDecoration(
-                        labelText: 'Título del libro o material',
-                        border: OutlineInputBorder(),
-                      ),
+                      decoration: const InputDecoration(labelText: 'Título del libro o material', border: OutlineInputBorder()),
                       validator: (v) => v!.isEmpty ? 'Requerido' : null,
                     ),
                     const SizedBox(height: 16),
@@ -135,68 +129,33 @@ class _AddBookScreenState extends State<AddBookScreen> {
                     TextFormField(
                       controller: _descriptionController,
                       maxLines: 3,
-                      decoration: const InputDecoration(
-                        labelText: 'Descripción / Autor / Detalles',
-                        border: OutlineInputBorder(),
-                      ),
+                      decoration: const InputDecoration(labelText: 'Descripción / Autor / Detalles', border: OutlineInputBorder()),
                       validator: (v) => v!.isEmpty ? 'Requerido' : null,
                     ),
                     const SizedBox(height: 16),
 
                     DropdownButtonFormField(
                       value: _selectedCategory,
-                      decoration: const InputDecoration(
-                        labelText: 'Categoría',
-                        border: OutlineInputBorder(),
-                      ),
-                      items:
-                          ['Ingeniería', 'Salud', 'Artes', 'Ciencias', 'Otros']
-                              .map(
-                                (e) =>
-                                    DropdownMenuItem(value: e, child: Text(e)),
-                              )
-                              .toList(),
-                      onChanged: (val) =>
-                          setState(() => _selectedCategory = val.toString()),
+                      decoration: const InputDecoration(labelText: 'Categoría', border: OutlineInputBorder()),
+                      items: ['Ingeniería', 'Salud', 'Artes', 'Ciencias', 'Otros'].map((e) => DropdownMenuItem(value: e, child: Text(e))).toList(),
+                      onChanged: (val) => setState(() => _selectedCategory = val.toString()),
                     ),
                     const SizedBox(height: 16),
 
                     DropdownButtonFormField(
                       value: _selectedCondition,
-                      decoration: const InputDecoration(
-                        labelText: 'Condición',
-                        border: OutlineInputBorder(),
-                      ),
-                      items:
-                          ['Nuevo', 'Como Nuevo', 'Buen estado', 'Deteriorado']
-                              .map(
-                                (e) =>
-                                    DropdownMenuItem(value: e, child: Text(e)),
-                              )
-                              .toList(),
-                      onChanged: (val) =>
-                          setState(() => _selectedCondition = val.toString()),
+                      decoration: const InputDecoration(labelText: 'Condición', border: OutlineInputBorder()),
+                      items: ['Nuevo', 'Como Nuevo', 'Buen estado', 'Deteriorado'].map((e) => DropdownMenuItem(value: e, child: Text(e))).toList(),
+                      onChanged: (val) => setState(() => _selectedCondition = val.toString()),
                     ),
                     const SizedBox(height: 24),
 
                     SizedBox(
                       width: double.infinity,
                       height: 50,
-                      child: ElevatedButton(
+                      child: FilledButton(
                         onPressed: _submitForm,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Theme.of(
-                            context,
-                          ).colorScheme.primary,
-                          foregroundColor: Colors.white,
-                        ),
-                        child: const Text(
-                          'Publicar Material',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
+                        child: const Text('Publicar Material', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                       ),
                     ),
                   ],

@@ -1,5 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import '../models/book_model.dart';
+import '../Models/book_model.dart';
 
 class BookService {
   // Inicializamos la conexión con la base de datos

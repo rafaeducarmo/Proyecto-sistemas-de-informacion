@@ -63,13 +63,29 @@ class AdminScreen extends StatelessWidget {
                   itemBuilder: (context, index) {
                     final book = books[index].data() as Map<String, dynamic>;
                     final bookId = books[index].id;
+                    // AQUÍ ESTÁ LA LÍNEA QUE FALTABA:
+                    final bookIdPropietario = book['ownerId'] ?? ''; 
+
                     return ListTile(
                       leading: CircleAvatar(
                         backgroundImage: NetworkImage(book['imageUrl'] ?? ''),
                         onBackgroundImageError: (_, __) => const Icon(Icons.broken_image),
                       ),
-                      title: Text(book['title'] ?? 'Sin título'),
-                      subtitle: Text('Dueño ID: ${book['ownerId']}'),
+                      title: Text(book['title'] ?? 'Sin título', style: const TextStyle(fontWeight: FontWeight.bold)),
+                      subtitle: FutureBuilder<DocumentSnapshot>(
+                        future: FirebaseFirestore.instance.collection('users').doc(bookIdPropietario).get(),
+                        builder: (context, userSnapshot) {
+                          if (userSnapshot.connectionState == ConnectionState.waiting) {
+                            return const Text('Cargando dueño...');
+                          }
+                          if (userSnapshot.hasData && userSnapshot.data!.exists) {
+                            final ownerData = userSnapshot.data!.data() as Map<String, dynamic>;
+                            return Text('Propietario: ${ownerData['name']} \n(ID: $bookIdPropietario)');
+                          }
+                          return const Text('Propietario desconocido');
+                        },
+                      ),
+                      isThreeLine: true,
                       trailing: IconButton(
                         icon: const Icon(Icons.delete, color: Colors.red),
                         onPressed: () => _borrarLibro(context, bookId),

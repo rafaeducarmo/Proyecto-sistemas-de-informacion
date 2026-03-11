@@ -177,18 +177,15 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                       textAlign: TextAlign.center,
                     ),
                     const SizedBox(height: 16),
+                    // AQUÍ ESTÁ EL BOTÓN DE EDITAR CORREGIDO
                     OutlinedButton.icon(
-              onPressed: () async {
-                await FirebaseAuth.instance.signOut();
-                // Al hacer signOut, el main.dart automáticamente te mandará al Login original
-              },
-              icon: const Icon(Icons.logout, color: Colors.red),
-              label: const Text('Cerrar Sesión', style: TextStyle(color: Colors.red)),
-              style: OutlinedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                side: const BorderSide(color: Colors.red),
-              ),
-            ),
+                      onPressed: () => _mostrarDialogoEdicion(user, userData),
+                      icon: const Icon(Icons.edit, color: Colors.blue),
+                      label: const Text('Editar Perfil', style: TextStyle(color: Colors.blue)),
+                      style: OutlinedButton.styleFrom(
+                        side: const BorderSide(color: Colors.blue),
+                      ),
+                    ),
                   ],
                 );
               },

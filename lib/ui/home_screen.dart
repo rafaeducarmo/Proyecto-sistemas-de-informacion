@@ -16,6 +16,15 @@ class _HomeScreenState extends State<HomeScreen> {
   String _searchQuery = '';
   String _selectedCategory = 'Todas';
   final List<String> _categories = ['Todas', 'Ingeniería', 'Salud', 'Artes', 'Ciencias', 'Otros'];
+  String _quitarAcentos(String texto) {
+    const conAcento = 'áéíóúÁÉÍÓÚñÑüÜ';
+    const sinAcento = 'aeiouAEIOUnNuU';
+    String res = texto;
+    for (int i = 0; i < conAcento.length; i++) {
+      res = res.replaceAll(conAcento[i], sinAcento[i]);
+    }
+    return res;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -99,12 +108,17 @@ class _HomeScreenState extends State<HomeScreen> {
                 }
 
                 final books = snapshot.data!.where((book) {
-                  final matchesSearch = book.title.toLowerCase().contains(_searchQuery) ||
-                                        book.description.toLowerCase().contains(_searchQuery);
+                  // Limpiamos los textos quitando acentos y mayúsculas
+                  final busquedaLimpia = _quitarAcentos(_searchQuery.toLowerCase());
+                  final tituloLimpio = _quitarAcentos(book.title.toLowerCase());
+                  final descLimpia = _quitarAcentos(book.description.toLowerCase());
+
+                  final matchesSearch = tituloLimpio.contains(busquedaLimpia) || 
+                                        descLimpia.contains(busquedaLimpia);
                   final matchesCategory = _selectedCategory == 'Todas' || book.category == _selectedCategory;
+                  
                   return matchesSearch && matchesCategory;
                 }).toList();
-
                 if (books.isEmpty) {
                   return const Center(
                     child: Text(

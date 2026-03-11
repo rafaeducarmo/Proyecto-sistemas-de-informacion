@@ -34,6 +34,9 @@ class MetroSwapApp extends StatelessWidget {
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.orange),
         useMaterial3: true,
+        appBarTheme: const AppBarTheme(
+          scrolledUnderElevation: 0.0, // Apaga el cambio de color al hacer scroll
+          backgroundColor: Colors.transparent, // Opcional: si quieres un color fijo, cámbialo aquí
       ),
       // StreamBuilder escucha la autenticación en tiempo real
       home: StreamBuilder<User?>(

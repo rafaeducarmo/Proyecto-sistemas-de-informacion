@@ -60,12 +60,13 @@ class _HomeScreenState extends State<HomeScreen> {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 12),
                   decoration: BoxDecoration(
-                    border: Border.all(color: Colors.grey),
+                    border: Border.all(color: const Color.fromARGB(255, 58, 56, 55)),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: DropdownButtonHideUnderline(
                     child: DropdownButton<String>(
                       value: _selectedCategory,
+                      focusColor: Colors.transparent,
                       items: _categories.map((String category) {
                         return DropdownMenuItem(
                           value: category,
@@ -77,6 +78,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           setState(() {
                             _selectedCategory = newValue;
                           });
+                          FocusManager.instance.primaryFocus?.unfocus();
                         }
                       },
                     ),

@@ -21,6 +21,88 @@ class BookDetailScreen extends StatelessWidget {
       return;
     }
 
+    // --- NUEVO: PEDIR FECHAS CON DIÁLOGO PERSONALIZADO ---
+    final DateTimeRange? pickedRange = await showDialog<DateTimeRange>(
+      context: context,
+      builder: (context) {
+        DateTime? start;
+        DateTime? end;
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              title: const Text('Período de solicitud'),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text('Selecciona las fechas en las que necesitas el material:', style: TextStyle(fontSize: 14)),
+                  const SizedBox(height: 16),
+                  TextField(
+                    readOnly: true,
+                    controller: TextEditingController(text: start != null ? "${start!.day}/${start!.month}/${start!.year}" : ''),
+                    decoration: const InputDecoration(
+                      labelText: 'Fecha de inicio',
+                      hintText: 'Seleccionar...',
+                      border: OutlineInputBorder(),
+                      suffixIcon: Icon(Icons.calendar_month),
+                    ),
+                    onTap: () async {
+                      final picked = await showDatePicker(
+                        context: context,
+                        initialDate: start ?? DateTime.now(),
+                        firstDate: DateTime.now(),
+                        lastDate: DateTime.now().add(const Duration(days: 365)),
+                      );
+                      if (picked != null) {
+                        setState(() {
+                          start = picked;
+                          if (end != null && end!.isBefore(start!)) end = null;
+                        });
+                      }
+                    },
+                  ),
+                  const SizedBox(height: 16),
+                  TextField(
+                    readOnly: true,
+                    controller: TextEditingController(text: end != null ? "${end!.day}/${end!.month}/${end!.year}" : ''),
+                    decoration: const InputDecoration(
+                      labelText: 'Fecha final',
+                      hintText: 'Seleccionar...',
+                      border: OutlineInputBorder(),
+                      suffixIcon: Icon(Icons.calendar_month),
+                    ),
+                    onTap: () async {
+                      final picked = await showDatePicker(
+                        context: context,
+                        initialDate: end ?? (start ?? DateTime.now()),
+                        firstDate: start ?? DateTime.now(),
+                        lastDate: DateTime.now().add(const Duration(days: 365)),
+                      );
+                      if (picked != null) {
+                        setState(() => end = picked);
+                      }
+                    },
+                  ),
+                ],
+              ),
+              actions: [
+                TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancelar')),
+                FilledButton(
+                  onPressed: (start != null && end != null) 
+                    ? () => Navigator.pop(context, DateTimeRange(start: start!, end: end!))
+                    : null,
+                  child: const Text('Confirmar Fechas'),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+
+    // Si el usuario canceló el calendario, no seguimos con la solicitud
+    if (pickedRange == null) return;
+
     try {
       String exchangeId = DateTime.now().millisecondsSinceEpoch.toString();
       
@@ -31,6 +113,8 @@ class BookDetailScreen extends StatelessWidget {
         ownerId: book.ownerId,
         status: 'Pendiente',
         requestDate: DateTime.now(),
+        startDate: pickedRange.start, // <-- Guardamos la fecha de inicio
+        endDate: pickedRange.end,     // <-- Guardamos la fecha de fin
       );
 
       await FirebaseFirestore.instance

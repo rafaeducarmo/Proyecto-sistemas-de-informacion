@@ -5,6 +5,8 @@ class Exchange {
   final String ownerId;       // El ID del dueño del libro
   final String status;        // Ej: Pendiente, Aceptado, Rechazado, Completado
   final DateTime requestDate;
+  final DateTime? startDate;  // Fecha de inicio solicitada
+  final DateTime? endDate;    // Fecha final solicitada
 
   Exchange({
     required this.id,
@@ -13,6 +15,8 @@ class Exchange {
     required this.ownerId,
     this.status = 'Pendiente', 
     required this.requestDate,
+    this.startDate,
+    this.endDate,
   });
 
   Map<String, dynamic> toMap() {
@@ -23,6 +27,8 @@ class Exchange {
       'ownerId': ownerId,
       'status': status,
       'requestDate': requestDate.toIso8601String(),
+      'startDate': startDate?.toIso8601String(),
+      'endDate': endDate?.toIso8601String(),
     };
   }
 
@@ -34,6 +40,8 @@ class Exchange {
       ownerId: map['ownerId'] ?? '',
       status: map['status'] ?? 'Pendiente',
       requestDate: DateTime.parse(map['requestDate']),
+      startDate: map['startDate'] != null ? DateTime.parse(map['startDate']) : null,
+      endDate: map['endDate'] != null ? DateTime.parse(map['endDate']) : null,
     );
   }
 }

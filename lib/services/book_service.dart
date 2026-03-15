@@ -25,4 +25,26 @@ class BookService {
       }).toList();
     });
   }
+
+  // 3. FUNCIÓN PARA DESCARGAR LOS LIBROS DE UN USUARIO ESPECÍFICO
+  Stream<List<Book>> getUserBooksStream(String userId) {
+    return _db
+        .collection('books')
+        .where('ownerId', isEqualTo: userId)
+        .snapshots()
+        .map((snapshot) {
+      return snapshot.docs.map((doc) {
+        return Book.fromMap(doc.data());
+      }).toList();
+    });
+  }
+
+  // 4. FUNCIÓN PARA ELIMINAR UN LIBRO
+  Future<void> deleteBook(String bookId) async {
+    try {
+      await _db.collection('books').doc(bookId).delete();
+    } catch (e) {
+      throw Exception('Error al eliminar el material: $e');
+    }
+  }
 }

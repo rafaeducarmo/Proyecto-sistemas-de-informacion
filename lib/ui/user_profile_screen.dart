@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../services/auth_service.dart';
+import '../services/book_service.dart';
+import '../Models/book_model.dart';
 import 'login_screen.dart';
 
 class UserProfileScreen extends StatefulWidget {
@@ -12,8 +14,10 @@ class UserProfileScreen extends StatefulWidget {
 }
 
 class _UserProfileScreenState extends State<UserProfileScreen> {
+  // Controladores para la Contraseña
   final _oldPasswordController = TextEditingController();
   final _newPasswordController = TextEditingController();
+  final _confirmNewPasswordController = TextEditingController();
   
   // Controladores para el Perfil
   final _nameController = TextEditingController();
@@ -27,6 +31,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
   void dispose() {
     _oldPasswordController.dispose();
     _newPasswordController.dispose();
+    _confirmNewPasswordController.dispose();
     _nameController.dispose();
     super.dispose();
   }
@@ -35,10 +40,18 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
   Future<void> _cambiarContrasena() async {
     String oldPassword = _oldPasswordController.text.trim();
     String newPassword = _newPasswordController.text.trim();
+    String confirmNewPassword = _confirmNewPasswordController.text.trim();
 
-    if (oldPassword.isEmpty || newPassword.isEmpty) {
+    if (oldPassword.isEmpty || newPassword.isEmpty || confirmNewPassword.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Por favor llena todos los campos'), backgroundColor: Colors.red),
+      );
+      return;
+    }
+
+    if (newPassword != confirmNewPassword) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Las contraseñas nuevas no coinciden'), backgroundColor: Colors.red),
       );
       return;
     }
@@ -57,6 +70,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
       );
       _oldPasswordController.clear();
       _newPasswordController.clear();
+      _confirmNewPasswordController.clear();
       FocusScope.of(context).unfocus();
       setState(() => _showPasswordFields = false);
     }
@@ -85,6 +99,45 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Error al guardar: $e'), backgroundColor: Colors.red),
         );
+      }
+    }
+  }
+
+  // --- LÓGICA DE ELIMINACIÓN DE LIBRO ---
+  Future<void> _confirmarEliminacionLibro(String bookId) async {
+    final confirmar = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Eliminar libro'),
+        content: const Text('¿Estás seguro de que deseas eliminar este libro? Esta acción no se puede deshacer.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancelar'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: FilledButton.styleFrom(backgroundColor: Colors.red),
+            child: const Text('Eliminar'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmar == true && mounted) {
+      try {
+        await BookService().deleteBook(bookId);
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Libro eliminado con éxito'), backgroundColor: Colors.green),
+          );
+        }
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Error al eliminar: $e'), backgroundColor: Colors.red),
+          );
+        }
       }
     }
   }
@@ -222,7 +275,17 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                 controller: _oldPasswordController,
                 obscureText: true,
                 decoration: const InputDecoration(
-                  labelText: 'Contraseña Actual',
+                  label: Text.rich(
+                    TextSpan(
+                      children: [
+                        TextSpan(text: 'Contraseña Actual'),
+                        TextSpan(
+                          text: ' *',
+                          style: TextStyle(color: Colors.red),
+                        ),
+                      ],
+                    ),
+                  ),
                   prefixIcon: Icon(Icons.lock_clock),
                   border: OutlineInputBorder(),
                 ),
@@ -232,7 +295,37 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                 controller: _newPasswordController,
                 obscureText: true,
                 decoration: const InputDecoration(
-                  labelText: 'Nueva Contraseña',
+                  label: Text.rich(
+                    TextSpan(
+                      children: [
+                        TextSpan(text: 'Nueva Contraseña'),
+                        TextSpan(
+                          text: ' *',
+                          style: TextStyle(color: Colors.red),
+                        ),
+                      ],
+                    ),
+                  ),
+                  prefixIcon: Icon(Icons.lock_reset),
+                  border: OutlineInputBorder(),
+                ),
+              ),
+              const SizedBox(height: 16),
+              TextField(
+                controller: _confirmNewPasswordController,
+                obscureText: true,
+                decoration: const InputDecoration(
+                  label: Text.rich(
+                    TextSpan(
+                      children: [
+                        TextSpan(text: 'Confirmar Nueva Contraseña'),
+                        TextSpan(
+                          text: ' *',
+                          style: TextStyle(color: Colors.red),
+                        ),
+                      ],
+                    ),
+                  ),
                   prefixIcon: Icon(Icons.lock_reset),
                   border: OutlineInputBorder(),
                 ),
@@ -249,6 +342,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                                 _showPasswordFields = false;
                                 _oldPasswordController.clear();
                                 _newPasswordController.clear();
+                                _confirmNewPasswordController.clear();
                               });
                             },
                       style: OutlinedButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 16)),
@@ -269,6 +363,79 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
               ),
             ],
             
+            const SizedBox(height: 32),
+            const Divider(),
+            const SizedBox(height: 16),
+
+            // SECCIÓN DE MIS LIBROS PUBLICADOS
+            const Text(
+              'Mis Libros Publicados',
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 16),
+            StreamBuilder<List<Book>>(
+              stream: BookService().getUserBooksStream(user.uid),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+
+                if (snapshot.hasError) {
+                  return const Center(child: Text('Error al cargar libros.'));
+                }
+
+                final books = snapshot.data ?? [];
+
+                if (books.isEmpty) {
+                  return const Center(
+                    child: Padding(
+                      padding: EdgeInsets.all(16.0),
+                      child: Text(
+                        'Aún no has publicado ningún libro.',
+                        style: TextStyle(color: Colors.grey, fontSize: 16),
+                      ),
+                    ),
+                  );
+                }
+
+                return ListView.builder(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  itemCount: books.length,
+                  itemBuilder: (context, index) {
+                    final book = books[index];
+                    return Card(
+                      margin: const EdgeInsets.only(bottom: 12),
+                      elevation: 2,
+                      child: ListTile(
+                        leading: book.imageUrl.isNotEmpty
+                            ? ClipRRect(
+                                borderRadius: BorderRadius.circular(4),
+                                child: Image.network(
+                                  book.imageUrl,
+                                  width: 50,
+                                  height: 50,
+                                  fit: BoxFit.cover,
+                                  errorBuilder: (context, error, stackTrace) =>
+                                      const Icon(Icons.book, size: 40),
+                                ),
+                              )
+                            : const Icon(Icons.book, size: 40),
+                        title: Text(book.title, style: const TextStyle(fontWeight: FontWeight.bold)),
+                        subtitle: Text('${book.condition} • ${book.status}'),
+                        trailing: IconButton(
+                          icon: const Icon(Icons.delete, color: Colors.red),
+                          onPressed: () => _confirmarEliminacionLibro(book.id),
+                          tooltip: 'Eliminar libro',
+                        ),
+                      ),
+                    );
+                  },
+                );
+              },
+            ),
+
             const SizedBox(height: 24),
             const Divider(),
             const SizedBox(height: 16),

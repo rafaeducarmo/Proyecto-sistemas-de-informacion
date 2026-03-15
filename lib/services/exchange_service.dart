@@ -19,4 +19,23 @@ class ExchangeService {
         .snapshots()
         .map((snapshot) => snapshot.docs.map((doc) => Exchange.fromMap(doc.data())).toList());
   }
+
+  // --- NUEVA FUNCIÓN PARA LIMPIAR EL HISTORIAL ACEPTADO ---
+  Future<void> clearAcceptedExchanges(String userId, bool isMisSolicitudes) async {
+    try {
+        final collection = _db.collection('exchanges');
+        final queryField = isMisSolicitudes ? 'requesterId' : 'ownerId';
+
+        final snapshot = await collection
+          .where(queryField, isEqualTo: userId)
+          .where('status', isEqualTo: 'Aceptado') // O ajusta si quieres borrar también rechazados
+          .get();
+
+        for (var doc in snapshot.docs) {
+          await doc.reference.delete();
+        }
+    } catch (e) {
+      throw Exception('Error al limpiar el historial: $e');
+    }
+  }
 }

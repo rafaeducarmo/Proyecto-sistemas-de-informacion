@@ -50,18 +50,67 @@ class _MyExchangesScreenState extends State<MyExchangesScreen> {
   Widget build(BuildContext context) {
     return DefaultTabController(
       length: 2,
-      child: Scaffold(
-        appBar: AppBar(
-          title: const Text('Mis Intercambios'),
-          bottom: const TabBar(
-            tabs: [
-              Tab(text: 'Mis Solicitudes (Quiero)'),
-              Tab(text: 'Recibidas (Me piden)'),
-            ],
-          ),
-        ),
-        body: TabBarView(
-          children: [
+      child: Builder(
+        builder: (context) {
+          return Scaffold(
+            appBar: AppBar(
+              title: const Text('Mis Intercambios'),
+              actions: [
+                IconButton(
+                  icon: const Icon(Icons.delete_sweep, color: Colors.red),
+                  tooltip: 'Limpiar historial de aceptados',
+                  onPressed: () async {
+                    final tabController = DefaultTabController.of(context);
+                    final isMisSolicitudes = tabController.index == 0;
+                    
+                    final confirm = await showDialog<bool>(
+                      context: context,
+                      builder: (ctx) => AlertDialog(
+                        title: const Text('Limpiar Historial'),
+                        content: Text(
+                          isMisSolicitudes
+                              ? '¿Deseas eliminar del historial todas tus solicitudes que ya fueron aceptadas?'
+                              : '¿Deseas eliminar del historial todas las solicitudes recibidas que ya aceptaste?'
+                        ),
+                        actions: [
+                          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancelar')),
+                          FilledButton(
+                            onPressed: () => Navigator.pop(ctx, true),
+                            style: FilledButton.styleFrom(backgroundColor: Colors.red),
+                            child: const Text('Limpiar'),
+                          ),
+                        ],
+                      ),
+                    );
+
+                    if (confirm == true && context.mounted) {
+                      try {
+                        await _exchangeService.clearAcceptedExchanges(currentUserId, isMisSolicitudes);
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('Historial limpiado con éxito'), backgroundColor: Colors.green),
+                          );
+                        }
+                      } catch (e) {
+                         if (context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text('Error al limpiar: $e'), backgroundColor: Colors.red),
+                          );
+                        }
+                      }
+                    }
+                  },
+                ),
+              ],
+              bottom: const TabBar(
+                tabs: [
+                  Tab(text: 'Mis Solicitudes (Quiero)'),
+                  Tab(text: 'Recibidas (Me piden)'),
+                ],
+              ),
+            ),
+            body: TabBarView(
+              children: [
             // Pestaña 1: Lo que yo pido (Soy el requester)
             _buildExchangeList(
               _exchangeService.getMisSolicitudes(currentUserId),
@@ -74,8 +123,10 @@ class _MyExchangesScreenState extends State<MyExchangesScreen> {
               'Nadie ha solicitado tus materiales todavía.',
               false, // isMisSolicitudes = false
             ),
-          ],
-        ),
+              ],
+            ),
+          );
+        },
       ),
     );
   }
@@ -130,6 +181,14 @@ class ExchangeTile extends StatelessWidget {
             ? 'Se lo pides a: $otherUserName' 
             : 'Te lo pide: $otherUserName';
 
+        // Formateo de fechas si existen
+        String dateLabel = '';
+        if (exchange.startDate != null && exchange.endDate != null) {
+          final startStr = "${exchange.startDate!.day}/${exchange.startDate!.month}/${exchange.startDate!.year}";
+          final endStr = "${exchange.endDate!.day}/${exchange.endDate!.month}/${exchange.endDate!.year}";
+          dateLabel = '\n📅 $startStr - $endStr';
+        }
+
         return Card(
           elevation: 2,
           margin: const EdgeInsets.only(bottom: 12),
@@ -143,7 +202,7 @@ class ExchangeTile extends StatelessWidget {
                   )
                 : const Icon(Icons.book, size: 40, color: Colors.orange),
             title: Text(bookTitle, style: const TextStyle(fontWeight: FontWeight.bold)),
-            subtitle: Text('$userLabel\nEstado: ${exchange.status}'),
+            subtitle: Text('$userLabel\nEstado: ${exchange.status}$dateLabel'),
             isThreeLine: true,
             trailing: Chip(
               label: Text(exchange.status),
@@ -164,6 +223,10 @@ class ExchangeTile extends StatelessWidget {
                       Text(userLabel),
                       const SizedBox(height: 8),
                       Text('Estado actual: ${exchange.status}'),
+                      if (dateLabel.isNotEmpty) ...[
+                        const SizedBox(height: 8),
+                        Text('Periodo solicitado:$dateLabel'),
+                      ],
                     ],
                   ),
                   actions: [

@@ -28,6 +28,8 @@ class _MainScreenState extends State<MainScreen> {
     return Scaffold(
       body: _screens[_currentIndex], // Muestra la pantalla según el índice
       bottomNavigationBar: NavigationBar(
+        backgroundColor: Colors.white,
+        indicatorColor: Colors.orange.shade300,
         selectedIndex: _currentIndex,
         onDestinationSelected: (int index) {
           setState(() {

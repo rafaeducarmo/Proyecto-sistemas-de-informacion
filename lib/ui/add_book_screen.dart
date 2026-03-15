@@ -17,7 +17,7 @@ class _AddBookScreenState extends State<AddBookScreen> {
   final _titleController = TextEditingController();
   final _descriptionController = TextEditingController();
 
-  String _selectedCategory = 'Ingeniería';
+  String _selectedCategory = 'Seleccionar...';
   String _selectedCondition = 'Nuevo';
   
   Uint8List? _imageBytes; // <-- Guardamos la foto en bytes
@@ -61,6 +61,8 @@ class _AddBookScreenState extends State<AddBookScreen> {
           _titleController.clear();
           _descriptionController.clear();
           _imageBytes = null;
+          _selectedCategory = 'Seleccionar...';
+          _selectedCondition = 'Nuevo';
         });
       } else if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -124,7 +126,20 @@ class _AddBookScreenState extends State<AddBookScreen> {
 
                     TextFormField(
                       controller: _titleController,
-                      decoration: const InputDecoration(labelText: 'Título del libro o material', border: OutlineInputBorder()),
+                      decoration: const InputDecoration(
+                        label: Text.rich(
+                          TextSpan(
+                            children: [
+                              TextSpan(text: 'Título del libro o material'),
+                              TextSpan(
+                                text: ' *',
+                                style: TextStyle(color: Colors.red),
+                              ),
+                            ],
+                          ),
+                        ),
+                        border: OutlineInputBorder(),
+                      ),
                       validator: (v) => v!.isEmpty ? 'Requerido' : null,
                     ),
                     const SizedBox(height: 16),
@@ -132,22 +147,62 @@ class _AddBookScreenState extends State<AddBookScreen> {
                     TextFormField(
                       controller: _descriptionController,
                       maxLines: 3,
-                      decoration: const InputDecoration(labelText: 'Descripción / Autor / Detalles', border: OutlineInputBorder()),
+                      decoration: const InputDecoration(
+                        label: Text.rich(
+                          TextSpan(
+                            children: [
+                              TextSpan(text: 'Descripción / Autor / Detalles'),
+                              TextSpan(
+                                text: ' *',
+                                style: TextStyle(color: Colors.red),
+                              ),
+                            ],
+                          ),
+                        ),
+                        border: OutlineInputBorder(),
+                      ),
                       validator: (v) => v!.isEmpty ? 'Requerido' : null,
                     ),
                     const SizedBox(height: 16),
 
                     DropdownButtonFormField(
                       value: _selectedCategory,
-                      decoration: const InputDecoration(labelText: 'Categoría', border: OutlineInputBorder()),
-                      items: ['Ingeniería', 'Salud', 'Artes', 'Ciencias', 'Otros'].map((e) => DropdownMenuItem(value: e, child: Text(e))).toList(),
+                      decoration: const InputDecoration(
+                        label: Text.rich(
+                          TextSpan(
+                            children: [
+                              TextSpan(text: 'Categoría'),
+                              TextSpan(
+                                text: ' *',
+                                style: TextStyle(color: Colors.red),
+                              ),
+                            ],
+                          ),
+                        ),
+                        border: OutlineInputBorder(),
+                      ),
+                      items: ['Seleccionar...', 'Ingeniería', 'Salud', 'Artes', 'Ciencias', 'Otros'].map((e) => DropdownMenuItem(value: e, child: Text(e))).toList(),
+                      validator: (val) => val == 'Seleccionar...' ? 'Requerido: Elija una categoría válida' : null,
                       onChanged: (val) => setState(() => _selectedCategory = val.toString()),
                     ),
                     const SizedBox(height: 16),
 
                     DropdownButtonFormField(
                       value: _selectedCondition,
-                      decoration: const InputDecoration(labelText: 'Condición', border: OutlineInputBorder()),
+                      decoration: const InputDecoration(
+                        label: Text.rich(
+                          TextSpan(
+                            children: [
+                              TextSpan(text: 'Condición'),
+                              TextSpan(
+                                text: ' *',
+                                style: TextStyle(color: Colors.red),
+                              ),
+                            ],
+                          ),
+                        ),
+                        border: OutlineInputBorder(),
+                      ),
                       items: ['Nuevo', 'Como Nuevo', 'Buen estado', 'Deteriorado'].map((e) => DropdownMenuItem(value: e, child: Text(e))).toList(),
                       onChanged: (val) => setState(() => _selectedCondition = val.toString()),
                     ),

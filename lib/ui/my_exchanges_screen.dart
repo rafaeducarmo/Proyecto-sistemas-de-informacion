@@ -28,14 +28,19 @@ class _MyExchangesScreenState extends State<MyExchangesScreen> {
         }
 
         final exchanges = snapshot.data!;
-        return ListView.builder(
-          padding: const EdgeInsets.all(16),
+        return Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 800),
+            child: ListView.builder(
+              padding: const EdgeInsets.all(16),
           itemCount: exchanges.length,
-          itemBuilder: (context, index) {
-            final exchange = exchanges[index];
-            // En vez de un Card simple, llamamos a nuestro nuevo Widget personalizado
-            return ExchangeTile(exchange: exchange, isMisSolicitudes: isMisSolicitudes);
-          },
+              itemBuilder: (context, index) {
+                final exchange = exchanges[index];
+                // En vez de un Card simple, llamamos a nuestro nuevo Widget personalizado
+                return ExchangeTile(exchange: exchange, isMisSolicitudes: isMisSolicitudes);
+              },
+            ),
+          ),
         );
       },
     );

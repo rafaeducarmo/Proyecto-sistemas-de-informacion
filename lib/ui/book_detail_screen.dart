@@ -57,9 +57,12 @@ class BookDetailScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Detalles del Material')),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
+      body: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 800),
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             ClipRRect(
@@ -102,7 +105,9 @@ class BookDetailScreen extends StatelessWidget {
                 label: const Text('Solicitar Intercambio', style: TextStyle(fontSize: 18)),
               ),
             ),
-          ],
+              ],
+            ),
+          ),
         ),
       ),
     );

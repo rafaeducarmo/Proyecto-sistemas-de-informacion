@@ -82,9 +82,12 @@ class _AddBookScreenState extends State<AddBookScreen> {
       appBar: AppBar(title: const Text('Publicar Material')),
       body: isLoading
           ? const Center(child: CircularProgressIndicator())
-          : SingleChildScrollView(
-              padding: const EdgeInsets.all(16.0),
-              child: Form(
+          : Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 600),
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Form(
                 key: _formKey,
                 child: Column(
                   children: [
@@ -162,6 +165,8 @@ class _AddBookScreenState extends State<AddBookScreen> {
                 ),
               ),
             ),
+          ),
+        ),
     );
   }
 }

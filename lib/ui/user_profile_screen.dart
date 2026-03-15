@@ -135,9 +135,12 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
       appBar: AppBar(
         title: const Text('Mi Perfil'),
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(24.0),
-        child: Column(
+      body: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 600),
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(24.0),
+            child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
@@ -287,7 +290,9 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                 side: const BorderSide(color: Colors.red),
               ),
             ),
-          ],
+              ],
+            ),
+          ),
         ),
       ),
     );

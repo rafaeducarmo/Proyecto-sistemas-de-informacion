@@ -186,7 +186,18 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Mi Perfil'),
+        title: const Padding(
+          padding:EdgeInsets.only(left: 20.0),
+          child: Text('Mi Perfil',
+          style: TextStyle(
+            fontSize: 28,
+            fontWeight: FontWeight.w900,
+            color: Color(0xFF5D4037),
+            letterSpacing: -0.5,
+          ),
+          ),
+      ),
+      centerTitle: false,
       ),
       body: Center(
         child: ConstrainedBox(
@@ -248,7 +259,33 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
             ),
             // --------------------------------------------------------
 
-            const SizedBox(height: 48),
+            // --------------------------------------------------------
+
+            const SizedBox(height: 20), // Espacio después de editar perfil
+
+            // >>> BOTÓN DE DONACIONES <<<
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                onPressed: () => _mostrarDialogoDonacion(context),
+                icon: const Icon(Icons.volunteer_activism, color: Colors.white),
+                label: const Text(
+                  'Apoyar a la Biblioteca',
+                  style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                ),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF5D4037), // Café Unimet
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+              ),
+            ),
+
+            const SizedBox(height: 20), // Espacio antes de contraseña
+
+            // SECCIÓN DE CAMBIO DE CONTRASEÑA
 
             // SECCIÓN DE CAMBIO DE CONTRASEÑA
             if (!_showPasswordFields)
@@ -461,6 +498,29 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
             ),
           ),
         ),
+      ),
+    );
+  }
+  void _mostrarDialogoDonacion(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Donaciones MetroSwap'),
+        content: const Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text('Tu aporte ayuda a mejorar los recursos de la biblioteca.'),
+            SizedBox(height: 15),
+            Text('Pago Móvil:', style: TextStyle(fontWeight: FontWeight.bold)),
+            Text('Banco Mercantil (0105)\n0412-1234567\nRIF: V-12345678'),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cerrar'),
+          ),
+        ],
       ),
     );
   }

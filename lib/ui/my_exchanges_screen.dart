@@ -54,7 +54,18 @@ class _MyExchangesScreenState extends State<MyExchangesScreen> {
         builder: (context) {
           return Scaffold(
             appBar: AppBar(
-              title: const Text('Mis Intercambios'),
+              title: const Padding(
+                padding: EdgeInsets.only(left: 20.0),
+                child: Text(
+                  'Mis Intercambios',
+                  style: TextStyle(
+                    fontSize: 28,
+                    fontWeight: FontWeight.w900,
+                    color: Color(0xFF5D4037),
+                    letterSpacing: -0.5,
+                  ),
+                )
+                  ),
               actions: [
                 IconButton(
                   icon: const Icon(Icons.delete_sweep, color: Colors.red),

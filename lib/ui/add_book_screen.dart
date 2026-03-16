@@ -81,7 +81,21 @@ class _AddBookScreenState extends State<AddBookScreen> {
     final isLoading = Provider.of<BookProvider>(context).isLoading;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Publicar Material')),
+      appBar: AppBar(
+        title: const Padding(
+          padding: EdgeInsets.only(left: 20.0),
+           child: Text(
+            'Publicar Material',
+            style: TextStyle(
+              fontSize: 28,
+              fontWeight: FontWeight.w900,
+              color: Color(0xFF5D4037),
+              letterSpacing: -0.5,
+            ),
+           ),
+        ),
+        centerTitle: false,
+            ),
       body: isLoading
           ? const Center(child: CircularProgressIndicator())
           : Center(

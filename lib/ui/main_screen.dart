@@ -12,10 +12,8 @@ class MainScreen extends StatefulWidget {
 }
 
 class _MainScreenState extends State<MainScreen> {
-  // Aquí guardamos qué pestaña está activa (0 = Inicio, 1 = Publicar, 2 = Perfil)
   int _currentIndex = 0;
 
-  // Lista de las pantallas que vamos a mostrar
   final List<Widget> _screens = [
     const HomeScreen(),
     const MyExchangesScreen(),
@@ -25,39 +23,57 @@ class _MainScreenState extends State<MainScreen> {
 
   @override
   Widget build(BuildContext context) {
+    const Color brandColor = Color(0xFF5D4037);
+
     return Scaffold(
-      body: _screens[_currentIndex], // Muestra la pantalla según el índice
-      bottomNavigationBar: NavigationBar(
-        backgroundColor: Colors.white,
-        indicatorColor: Colors.orange.shade300,
-        selectedIndex: _currentIndex,
-        onDestinationSelected: (int index) {
-          setState(() {
-            _currentIndex = index; // Cambia la pestaña al tocar
-          });
-        },
-        destinations: const [
-          NavigationDestination(
-            icon: Icon(Icons.home_outlined),
-            selectedIcon: Icon(Icons.home),
-            label: 'Catálogo',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.handshake_outlined),
-            selectedIcon: Icon(Icons.handshake),
-            label: 'Intercambios',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.add_circle_outline_rounded),
-            selectedIcon: Icon(Icons.add_circle_rounded),
-            label: 'Publicar',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.person_outline),
-            selectedIcon: Icon(Icons.person),
-            label: 'Mi Perfil',
-          ),
-        ],
+      body: _screens[_currentIndex],
+      bottomNavigationBar: NavigationBarTheme(
+        data: NavigationBarThemeData(
+          indicatorColor: brandColor,
+          iconTheme: WidgetStateProperty.resolveWith((Set<WidgetState> states) {
+            if (states.contains(WidgetState.selected)) {
+              return const IconThemeData(color: Colors.white);
+            }
+            return const IconThemeData(color: brandColor);
+          }),
+          labelTextStyle: WidgetStateProperty.resolveWith((Set<WidgetState> states) {
+            if (states.contains(WidgetState.selected)) {
+              return const TextStyle(color: brandColor, fontWeight: FontWeight.bold);
+            }
+            return const TextStyle(color: brandColor, fontWeight: FontWeight.normal);
+          }),
+        ),
+        child: NavigationBar(
+          backgroundColor: Colors.white,
+          selectedIndex: _currentIndex,
+          onDestinationSelected: (int index) {
+            setState(() {
+              _currentIndex = index;
+            });
+          },
+          destinations: const [
+            NavigationDestination(
+              icon: Icon(Icons.home_outlined),
+              selectedIcon: Icon(Icons.home),
+              label: 'Catálogo',
+            ),
+            NavigationDestination(
+              icon: Icon(Icons.handshake_outlined),
+              selectedIcon: Icon(Icons.handshake),
+              label: 'Intercambios',
+            ),
+            NavigationDestination(
+              icon: Icon(Icons.add_circle_outline_rounded),
+              selectedIcon: Icon(Icons.add_circle_rounded),
+              label: 'Publicar',
+            ),
+            NavigationDestination(
+              icon: Icon(Icons.person_outline),
+              selectedIcon: Icon(Icons.person),
+              label: 'Mi Perfil',
+            ),
+          ],
+        ),
       ),
     );
   }

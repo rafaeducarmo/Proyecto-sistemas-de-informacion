@@ -30,7 +30,19 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Catálogo MetroSwap'),
+        title: Padding(
+          padding:const EdgeInsets.only(left: 20.0),
+          child:const Text(
+          'Catálogo MetroSwap',
+          style: TextStyle(
+            fontSize: 28,
+            fontWeight: FontWeight.w900,
+            color: Color(0xFF5D4037),
+            letterSpacing: -0.5,
+            ),
+          ),
+        ),
+        centerTitle: false,
       ),
       body: Column(
         children: [

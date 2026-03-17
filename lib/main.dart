@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart'; // <-- ESTA ES LA LÍNEA QUE FALTABA
 import 'package:provider/provider.dart';
 import 'firebase_options.dart';
 import 'package:metroswap/ui/main_screen.dart';
@@ -69,22 +70,18 @@ class MetroSwapApp extends StatelessWidget {
       // StreamBuilder escucha la autenticación en tiempo real
       home: StreamBuilder<User?>(
         stream: FirebaseAuth.instance.authStateChanges(),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
+        builder: (context, authSnapshot) {
+          if (authSnapshot.connectionState == ConnectionState.waiting) {
             return const Scaffold(
               body: Center(child: CircularProgressIndicator()),
             );
           }
-          if (snapshot.hasData) {
-            // Evaluamos si el correo es el del administrador
-            final user = snapshot.data!;
-            if (user.email == 'admin@unimet.edu.ve') {
-              return const AdminScreen(); // Lo mandamos al panel de control
-            }
 
-            // Si es un estudiante normal, va al menú principal
+          if (authSnapshot.hasData) {
+            // TODOS los usuarios (admins y estudiantes) van primero a la app normal
             return const MainScreen();
           }
+          
           // Si el usuario no ha iniciado sesión
           return const LoginScreen();
         },

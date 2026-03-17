@@ -4,7 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import '../services/auth_service.dart';
 import '../services/book_service.dart';
 import '../Models/book_model.dart';
-import 'login_screen.dart';
+import 'admin_screen.dart'; 
 
 class UserProfileScreen extends StatefulWidget {
   const UserProfileScreen({super.key});
@@ -27,99 +27,92 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
   bool _isLoading = false;
   bool _showPasswordFields = false;
 
+  // --- VARIABLES PARA LOS OJITOS (ValueNotifier para no recargar la pantalla) ---
+  final ValueNotifier<bool> _obscureOldPassword = ValueNotifier<bool>(true);
+  final ValueNotifier<bool> _obscureNewPassword = ValueNotifier<bool>(true);
+  final ValueNotifier<bool> _obscureConfirmPassword = ValueNotifier<bool>(true);
+
   @override
   void dispose() {
     _oldPasswordController.dispose();
     _newPasswordController.dispose();
     _confirmNewPasswordController.dispose();
     _nameController.dispose();
+    
+    // Limpiamos los Notifiers de la memoria
+    _obscureOldPassword.dispose();
+    _obscureNewPassword.dispose();
+    _obscureConfirmPassword.dispose();
     super.dispose();
   }
 
-  // --- LÓGICA DE CONTRASEÑA (La que ya tenías) ---
+  // --- LÓGICA DE CONTRASEÑA ---
   Future<void> _cambiarContrasena() async {
     String oldPassword = _oldPasswordController.text.trim();
     String newPassword = _newPasswordController.text.trim();
     String confirmNewPassword = _confirmNewPasswordController.text.trim();
 
-    if (oldPassword.isEmpty ||
-        newPassword.isEmpty ||
-        confirmNewPassword.isEmpty) {
+    if (oldPassword.isEmpty || newPassword.isEmpty || confirmNewPassword.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Por favor llena todos los campos'),
-          backgroundColor: Colors.red,
-        ),
+        const SnackBar(content: Text('Por favor llena todos los campos'), backgroundColor: Colors.red),
       );
       return;
     }
 
     if (newPassword != confirmNewPassword) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Las contraseñas nuevas no coinciden'),
-          backgroundColor: Colors.red,
-        ),
+        const SnackBar(content: Text('Las contraseñas nuevas no coinciden'), backgroundColor: Colors.red),
       );
       return;
     }
 
     setState(() => _isLoading = true);
-    String? error = await _authService.cambiarContrasena(
-      oldPassword,
-      newPassword,
-    );
+    String? error = await _authService.cambiarContrasena(oldPassword, newPassword);
     setState(() => _isLoading = false);
 
     if (error != null) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(error), backgroundColor: Colors.red),
-      );
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(error), backgroundColor: Colors.red));
     } else {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text("¡Contraseña actualizada exitosamente!"),
-          backgroundColor: Colors.green,
-        ),
+        const SnackBar(content: Text("¡Contraseña actualizada exitosamente!"), backgroundColor: Colors.green),
       );
       _oldPasswordController.clear();
       _newPasswordController.clear();
       _confirmNewPasswordController.clear();
       FocusScope.of(context).unfocus();
-      setState(() => _showPasswordFields = false);
+      setState(() {
+        _showPasswordFields = false;
+        // Reiniciamos los ojitos
+        _obscureOldPassword.value = true;
+        _obscureNewPassword.value = true;
+        _obscureConfirmPassword.value = true;
+      });
     }
   }
 
-  // --- NUEVA LÓGICA DE PERFIL ---
+  // --- LÓGICA DE PERFIL ---
   Future<void> _guardarPerfil(User user) async {
     try {
-      // Guarda los datos en la colección 'users'
+      // Usamos SetOptions(merge: true) para no borrar el rol de admin si lo tiene
       await FirebaseFirestore.instance.collection('users').doc(user.uid).set({
         'id': user.uid,
         'name': _nameController.text.trim(),
         'email': user.email,
         'career': _selectedCareer,
-        'profilePic': '', // Por ahora vacío
-      });
+      }, SetOptions(merge: true));
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('¡Perfil actualizado con éxito!'),
-            backgroundColor: Colors.green,
-          ),
+          const SnackBar(content: Text('¡Perfil actualizado con éxito!'), backgroundColor: Colors.green),
         );
-        Navigator.pop(context); // Cierra el modal
+        Navigator.pop(context); 
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error al guardar: $e'),
-            backgroundColor: Colors.red,
-          ),
+          SnackBar(content: Text('Error al guardar: $e'), backgroundColor: Colors.red),
         );
       }
     }
@@ -131,14 +124,9 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Eliminar libro'),
-        content: const Text(
-          '¿Estás seguro de que deseas eliminar este libro? Esta acción no se puede deshacer.',
-        ),
+        content: const Text('¿Estás seguro de que deseas eliminar este libro? Esta acción no se puede deshacer.'),
         actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancelar'),
-          ),
+          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancelar')),
           FilledButton(
             onPressed: () => Navigator.pop(context, true),
             style: FilledButton.styleFrom(backgroundColor: Colors.red),
@@ -153,19 +141,13 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
         await BookService().deleteBook(bookId);
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Libro eliminado con éxito'),
-              backgroundColor: Colors.green,
-            ),
+            const SnackBar(content: Text('Libro eliminado con éxito'), backgroundColor: Colors.green),
           );
         }
       } catch (e) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Error al eliminar: $e'),
-              backgroundColor: Colors.red,
-            ),
+            SnackBar(content: Text('Error al eliminar: $e'), backgroundColor: Colors.red),
           );
         }
       }
@@ -173,20 +155,11 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
   }
 
   void _mostrarDialogoEdicion(User user, Map<String, dynamic>? currentData) {
-    // Si ya tiene datos, los cargamos en los campos
     if (currentData != null) {
       _nameController.text = currentData['name'] ?? '';
-      _selectedCareer =
-          [
-            'Ingeniería de Sistemas',
-            'Ingeniería Civil',
-            'Derecho',
-            'Administración',
-            'Psicología',
-            'Otra',
-          ].contains(currentData['career'])
-          ? currentData['career']
-          : 'Ingeniería de Sistemas';
+      _selectedCareer = [
+        'Ingeniería de Sistemas', 'Ingeniería Civil', 'Derecho', 'Administración', 'Psicología', 'Otra'
+      ].contains(currentData['career']) ? currentData['career'] : 'Ingeniería de Sistemas';
     }
 
     showDialog(
@@ -198,38 +171,66 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
           children: [
             TextField(
               controller: _nameController,
-              decoration: const InputDecoration(
-                labelText: 'Nombre Completo',
-                border: OutlineInputBorder(),
-              ),
+              decoration: const InputDecoration(labelText: 'Nombre Completo', border: OutlineInputBorder()),
             ),
             const SizedBox(height: 16),
             DropdownButtonFormField<String>(
               value: _selectedCareer,
-              decoration: const InputDecoration(
-                labelText: 'Carrera',
-                border: OutlineInputBorder(),
-              ),
+              decoration: const InputDecoration(labelText: 'Carrera', border: OutlineInputBorder()),
               items: [
-                'Ingeniería de Sistemas',
-                'Ingeniería Civil',
-                'Derecho',
-                'Administración',
-                'Psicología',
-                'Otra',
+                'Ingeniería de Sistemas', 'Ingeniería Civil', 'Derecho', 'Administración', 'Psicología', 'Otra'
               ].map((e) => DropdownMenuItem(value: e, child: Text(e))).toList(),
               onChanged: (val) => setState(() => _selectedCareer = val!),
             ),
           ],
         ),
         actions: [
+          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancelar')),
+          FilledButton(onPressed: () => _guardarPerfil(user), child: const Text('Guardar')),
+        ],
+      ),
+    );
+  }
+
+  void _mostrarDialogoDonacion(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text(
+          'Donaciones MetroSwap',
+          textAlign: TextAlign.center,
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
+        content: const Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Tu aporte ayuda a mejorar los recursos de la biblioteca.',
+              textAlign: TextAlign.center,
+            ),
+            SizedBox(height: 24),
+            Text(
+              '📱 Pago Móvil:',
+              style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF002855)),
+            ),
+            SizedBox(height: 4),
+            Text('Banco Mercantil (0105)\nTeléfono: 0412-1234567\nRIF: V-12345678'),
+            SizedBox(height: 16),
+            Divider(),
+            SizedBox(height: 16),
+            Text(
+              '💻 PayPal:',
+              style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF002855)),
+            ),
+            SizedBox(height: 4),
+            Text('donacionesunimet@gmail.com'),
+          ],
+        ),
+        actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cancelar'),
-          ),
-          FilledButton(
-            onPressed: () => _guardarPerfil(user),
-            child: const Text('Guardar'),
+            child: const Text('Cerrar', style: TextStyle(color: Colors.grey)),
           ),
         ],
       ),
@@ -239,8 +240,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
   @override
   Widget build(BuildContext context) {
     final user = FirebaseAuth.instance.currentUser;
-    if (user == null)
-      return const Center(child: Text('Error: No hay usuario activo'));
+    if (user == null) return const Center(child: Text('Error: No hay usuario activo'));
 
     return Scaffold(
       appBar: AppBar(
@@ -251,12 +251,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
           padding: EdgeInsets.only(left: 8.0),
           child: Text(
             'Mi Perfil',
-            style: TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.w900,
-              color: Color(0xFF002855),
-              letterSpacing: -0.5,
-            ),
+            style: TextStyle(fontSize: 24, fontWeight: FontWeight.w900, color: Color(0xFF002855), letterSpacing: -0.5),
           ),
         ),
         centerTitle: false,
@@ -276,48 +271,34 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                const Icon(
-                  Icons.account_circle,
-                  size: 100,
-                  color: Colors.orange,
-                ),
+                const Icon(Icons.account_circle, size: 100, color: Colors.orange),
                 const SizedBox(height: 16),
 
-                // --- STREAMBUILDER PARA LEER LOS DATOS EN TIEMPO REAL ---
                 StreamBuilder<DocumentSnapshot>(
-                  stream: FirebaseFirestore.instance
-                      .collection('users')
-                      .doc(user.uid)
-                      .snapshots(),
+                  stream: FirebaseFirestore.instance.collection('users').doc(user.uid).snapshots(),
                   builder: (context, snapshot) {
                     if (snapshot.connectionState == ConnectionState.waiting) {
                       return const Center(child: CircularProgressIndicator());
                     }
 
-                    // Extraemos los datos si existen
-                    final userData =
-                        snapshot.data?.data() as Map<String, dynamic>?;
+                    final userData = snapshot.data?.data() as Map<String, dynamic>?;
                     final nombre = userData?['name'] ?? 'Estudiante UNIMET';
-                    final carrera =
-                        userData?['career'] ?? 'Carrera no especificada';
+                    final carrera = userData?['career'] ?? 'Carrera no especificada';
+                    
+                    final role = userData?['role'] ?? 'student';
+                    final isAdmin = (user.email == 'admin@unimet.edu.ve' || role == 'admin');
 
                     return Column(
                       children: [
                         Text(
                           nombre,
                           textAlign: TextAlign.center,
-                          style: const TextStyle(
-                            fontSize: 24,
-                            fontWeight: FontWeight.bold,
-                          ),
+                          style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
                         ),
                         const SizedBox(height: 8),
                         Text(
                           'Carrera: $carrera',
-                          style: const TextStyle(
-                            fontSize: 16,
-                            color: Colors.grey,
-                          ),
+                          style: const TextStyle(fontSize: 16, color: Colors.grey),
                           textAlign: TextAlign.center,
                         ),
                         const SizedBox(height: 4),
@@ -327,58 +308,49 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                           textAlign: TextAlign.center,
                         ),
                         const SizedBox(height: 16),
-                        // AQUÍ ESTÁ EL BOTÓN DE EDITAR CORREGIDO
                         OutlinedButton.icon(
-                          onPressed: () =>
-                              _mostrarDialogoEdicion(user, userData),
+                          onPressed: () => _mostrarDialogoEdicion(user, userData),
                           icon: const Icon(Icons.edit, color: Colors.blue),
-                          label: const Text(
-                            'Editar Perfil',
-                            style: TextStyle(color: Colors.blue),
-                          ),
-                          style: OutlinedButton.styleFrom(
-                            side: const BorderSide(color: Colors.blue),
-                          ),
+                          label: const Text('Editar Perfil', style: TextStyle(color: Colors.blue)),
+                          style: OutlinedButton.styleFrom(side: const BorderSide(color: Colors.blue)),
                         ),
+                        
+                        if (isAdmin) ...[
+                          const SizedBox(height: 16),
+                          FilledButton.icon(
+                            onPressed: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(builder: (context) => const AdminScreen()),
+                              );
+                            },
+                            icon: const Icon(Icons.admin_panel_settings),
+                            label: const Text('Panel de Administración'),
+                            style: FilledButton.styleFrom(backgroundColor: Colors.redAccent),
+                          ),
+                        ],
                       ],
                     );
                   },
                 ),
 
-                // --------------------------------------------------------
-
-                // --------------------------------------------------------
-                const SizedBox(height: 20), // Espacio después de editar perfil
-                // >>> BOTÓN DE DONACIONES <<<
+                const SizedBox(height: 20),
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton.icon(
                     onPressed: () => _mostrarDialogoDonacion(context),
-                    icon: const Icon(
-                      Icons.volunteer_activism,
-                      color: Colors.white,
-                    ),
-                    label: const Text(
-                      'Apoyar a la Biblioteca',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
+                    icon: const Icon(Icons.volunteer_activism, color: Colors.white),
+                    label: const Text('Apoyar a la Biblioteca', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF5D4037), // Café Unimet
+                      backgroundColor: const Color(0xFF5D4037),
                       padding: const EdgeInsets.symmetric(vertical: 16),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                     ),
                   ),
                 ),
 
-                const SizedBox(height: 20), // Espacio antes de contraseña
-                // SECCIÓN DE CAMBIO DE CONTRASEÑA
-
-                // SECCIÓN DE CAMBIO DE CONTRASEÑA
+                const SizedBox(height: 20),
+                
                 if (!_showPasswordFields)
                   FilledButton.icon(
                     onPressed: () {
@@ -399,65 +371,69 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                     style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 16),
-                  TextField(
-                    controller: _oldPasswordController,
-                    obscureText: true,
-                    decoration: const InputDecoration(
-                      label: Text.rich(
-                        TextSpan(
-                          children: [
-                            TextSpan(text: 'Contraseña Actual'),
-                            TextSpan(
-                              text: ' *',
-                              style: TextStyle(color: Colors.red),
-                            ),
-                          ],
+                  
+                  // CONTRASEÑA ACTUAL CON OJITO
+                  ValueListenableBuilder<bool>(
+                    valueListenable: _obscureOldPassword,
+                    builder: (context, isObscure, child) {
+                      return TextField(
+                        controller: _oldPasswordController,
+                        obscureText: isObscure,
+                        decoration: InputDecoration(
+                          label: const Text.rich(TextSpan(children: [TextSpan(text: 'Contraseña Actual'), TextSpan(text: ' *', style: TextStyle(color: Colors.red))])),
+                          prefixIcon: const Icon(Icons.lock_clock),
+                          border: const OutlineInputBorder(),
+                          suffixIcon: IconButton(
+                            icon: Icon(isObscure ? Icons.visibility_off : Icons.visibility),
+                            onPressed: () => _obscureOldPassword.value = !isObscure,
+                          ),
                         ),
-                      ),
-                      prefixIcon: Icon(Icons.lock_clock),
-                      border: OutlineInputBorder(),
-                    ),
+                      );
+                    },
                   ),
                   const SizedBox(height: 16),
-                  TextField(
-                    controller: _newPasswordController,
-                    obscureText: true,
-                    decoration: const InputDecoration(
-                      label: Text.rich(
-                        TextSpan(
-                          children: [
-                            TextSpan(text: 'Nueva Contraseña'),
-                            TextSpan(
-                              text: ' *',
-                              style: TextStyle(color: Colors.red),
-                            ),
-                          ],
+                  
+                  // NUEVA CONTRASEÑA CON OJITO
+                  ValueListenableBuilder<bool>(
+                    valueListenable: _obscureNewPassword,
+                    builder: (context, isObscure, child) {
+                      return TextField(
+                        controller: _newPasswordController,
+                        obscureText: isObscure,
+                        decoration: InputDecoration(
+                          label: const Text.rich(TextSpan(children: [TextSpan(text: 'Nueva Contraseña'), TextSpan(text: ' *', style: TextStyle(color: Colors.red))])),
+                          prefixIcon: const Icon(Icons.lock_reset),
+                          border: const OutlineInputBorder(),
+                          suffixIcon: IconButton(
+                            icon: Icon(isObscure ? Icons.visibility_off : Icons.visibility),
+                            onPressed: () => _obscureNewPassword.value = !isObscure,
+                          ),
                         ),
-                      ),
-                      prefixIcon: Icon(Icons.lock_reset),
-                      border: OutlineInputBorder(),
-                    ),
+                      );
+                    },
                   ),
                   const SizedBox(height: 16),
-                  TextField(
-                    controller: _confirmNewPasswordController,
-                    obscureText: true,
-                    decoration: const InputDecoration(
-                      label: Text.rich(
-                        TextSpan(
-                          children: [
-                            TextSpan(text: 'Confirmar Nueva Contraseña'),
-                            TextSpan(
-                              text: ' *',
-                              style: TextStyle(color: Colors.red),
-                            ),
-                          ],
+                  
+                  // CONFIRMAR CONTRASEÑA CON OJITO
+                  ValueListenableBuilder<bool>(
+                    valueListenable: _obscureConfirmPassword,
+                    builder: (context, isObscure, child) {
+                      return TextField(
+                        controller: _confirmNewPasswordController,
+                        obscureText: isObscure,
+                        decoration: InputDecoration(
+                          label: const Text.rich(TextSpan(children: [TextSpan(text: 'Confirmar Nueva Contraseña'), TextSpan(text: ' *', style: TextStyle(color: Colors.red))])),
+                          prefixIcon: const Icon(Icons.lock_reset),
+                          border: const OutlineInputBorder(),
+                          suffixIcon: IconButton(
+                            icon: Icon(isObscure ? Icons.visibility_off : Icons.visibility),
+                            onPressed: () => _obscureConfirmPassword.value = !isObscure,
+                          ),
                         ),
-                      ),
-                      prefixIcon: Icon(Icons.lock_reset),
-                      border: OutlineInputBorder(),
-                    ),
+                      );
+                    },
                   ),
+                  
                   const SizedBox(height: 24),
                   Row(
                     children: [
@@ -471,11 +447,13 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                                     _oldPasswordController.clear();
                                     _newPasswordController.clear();
                                     _confirmNewPasswordController.clear();
+                                    // Reiniciamos los ojitos
+                                    _obscureOldPassword.value = true;
+                                    _obscureNewPassword.value = true;
+                                    _obscureConfirmPassword.value = true;
                                   });
                                 },
-                          style: OutlinedButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(vertical: 16),
-                          ),
+                          style: OutlinedButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 16)),
                           child: const Text('Cancelar'),
                         ),
                       ),
@@ -483,22 +461,10 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                       Expanded(
                         child: FilledButton(
                           onPressed: _isLoading ? null : _cambiarContrasena,
-                          style: FilledButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(vertical: 16),
-                          ),
+                          style: FilledButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 16)),
                           child: _isLoading
-                              ? const SizedBox(
-                                  height: 20,
-                                  width: 20,
-                                  child: CircularProgressIndicator(
-                                    color: Colors.white,
-                                    strokeWidth: 2,
-                                  ),
-                                )
-                              : const Text(
-                                  'Actualizar',
-                                  style: TextStyle(fontSize: 16),
-                                ),
+                              ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                              : const Text('Actualizar', style: TextStyle(fontSize: 16)),
                         ),
                       ),
                     ],
@@ -509,7 +475,6 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                 const Divider(),
                 const SizedBox(height: 16),
 
-                // SECCIÓN DE MIS LIBROS PUBLICADOS
                 const Text(
                   'Mis Libros Publicados',
                   style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
@@ -522,27 +487,18 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                     if (snapshot.connectionState == ConnectionState.waiting) {
                       return const Center(child: CircularProgressIndicator());
                     }
-
                     if (snapshot.hasError) {
-                      return const Center(
-                        child: Text('Error al cargar libros.'),
-                      );
+                      return const Center(child: Text('Error al cargar libros.'));
                     }
-
                     final books = snapshot.data ?? [];
-
                     if (books.isEmpty) {
                       return const Center(
                         child: Padding(
                           padding: EdgeInsets.all(16.0),
-                          child: Text(
-                            'Aún no has publicado ningún libro.',
-                            style: TextStyle(color: Colors.grey, fontSize: 16),
-                          ),
+                          child: Text('Aún no has publicado ningún libro.', style: TextStyle(color: Colors.grey, fontSize: 16)),
                         ),
                       );
                     }
-
                     return ListView.builder(
                       shrinkWrap: true,
                       physics: const NeverScrollableScrollPhysics(),
@@ -561,25 +517,15 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                                       width: 50,
                                       height: 50,
                                       fit: BoxFit.cover,
-                                      errorBuilder:
-                                          (context, error, stackTrace) =>
-                                              const Icon(Icons.book, size: 40),
+                                      errorBuilder: (context, error, stackTrace) => const Icon(Icons.book, size: 40),
                                     ),
                                   )
                                 : const Icon(Icons.book, size: 40),
-                            title: Text(
-                              book.title,
-                              style: const TextStyle(
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            subtitle: Text(
-                              '${book.condition} • ${book.status}',
-                            ),
+                            title: Text(book.title, style: const TextStyle(fontWeight: FontWeight.bold)),
+                            subtitle: Text('${book.condition} • ${book.status}'),
                             trailing: IconButton(
                               icon: const Icon(Icons.delete, color: Colors.red),
-                              onPressed: () =>
-                                  _confirmarEliminacionLibro(book.id),
+                              onPressed: () => _confirmarEliminacionLibro(book.id),
                               tooltip: 'Eliminar libro',
                             ),
                           ),
@@ -595,21 +541,11 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
 
                 OutlinedButton.icon(
                   onPressed: () async {
+                    // Cierra sesión sin Navigator. El main.dart se encarga de redirigir.
                     await FirebaseAuth.instance.signOut();
-                    if (context.mounted) {
-                      Navigator.pushReplacement(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const LoginScreen(),
-                        ),
-                      );
-                    }
                   },
                   icon: const Icon(Icons.logout, color: Colors.red),
-                  label: const Text(
-                    'Cerrar Sesión',
-                    style: TextStyle(color: Colors.red),
-                  ),
+                  label: const Text('Cerrar Sesión', style: TextStyle(color: Colors.red)),
                   style: OutlinedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(vertical: 16),
                     side: const BorderSide(color: Colors.red),
@@ -619,30 +555,6 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
             ),
           ),
         ),
-      ),
-    );
-  }
-
-  void _mostrarDialogoDonacion(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Donaciones MetroSwap'),
-        content: const Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text('Tu aporte ayuda a mejorar los recursos de la biblioteca.'),
-            SizedBox(height: 15),
-            Text('Pago Móvil:', style: TextStyle(fontWeight: FontWeight.bold)),
-            Text('Banco Mercantil (0105)\n0412-1234567\nRIF: V-12345678'),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cerrar'),
-          ),
-        ],
       ),
     );
   }

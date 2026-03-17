@@ -27,37 +27,59 @@ class _MainScreenState extends State<MainScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: _screens[_currentIndex], // Muestra la pantalla según el índice
-      bottomNavigationBar: NavigationBar(
-        backgroundColor: Colors.white,
-        indicatorColor: Colors.orange.shade300,
-        selectedIndex: _currentIndex,
-        onDestinationSelected: (int index) {
-          setState(() {
-            _currentIndex = index; // Cambia la pestaña al tocar
-          });
-        },
-        destinations: const [
-          NavigationDestination(
-            icon: Icon(Icons.home_outlined),
-            selectedIcon: Icon(Icons.home),
-            label: 'Catálogo',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.handshake_outlined),
-            selectedIcon: Icon(Icons.handshake),
-            label: 'Intercambios',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.add_circle_outline_rounded),
-            selectedIcon: Icon(Icons.add_circle_rounded),
-            label: 'Publicar',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.person_outline),
-            selectedIcon: Icon(Icons.person),
-            label: 'Mi Perfil',
-          ),
-        ],
+      // Envolvemos el NavigationBar en un Theme para poder manipular las letras
+      bottomNavigationBar: NavigationBarTheme(
+        data: NavigationBarThemeData(
+          labelTextStyle: MaterialStateProperty.resolveWith((states) {
+            // Estilo cuando la pestaña ESTÁ seleccionada
+            if (states.contains(MaterialState.selected)) {
+              return const TextStyle(
+                fontSize: 14, // Letra más grande
+                fontWeight: FontWeight.bold, // Negrita fuerte
+                color: Color(0xFF002855), // Azul Unimet
+              );
+            }
+            // Estilo cuando la pestaña NO está seleccionada
+            return const TextStyle(
+              fontSize: 13, 
+              fontWeight: FontWeight.w600, // Semi-negrita para no perder visibilidad
+              color: Colors.grey,
+            );
+          }),
+        ),
+        child: NavigationBar(
+          backgroundColor: Colors.white,
+          indicatorColor: Colors.orange.shade300,
+          selectedIndex: _currentIndex,
+          height: 75, // Le damos un poquito más de altura para que respiren los íconos grandes
+          onDestinationSelected: (int index) {
+            setState(() {
+              _currentIndex = index; // Cambia la pestaña al tocar
+            });
+          },
+          destinations: const [
+            NavigationDestination(
+              icon: Icon(Icons.home_outlined, size: 28), // Ícono base más grande
+              selectedIcon: Icon(Icons.home, size: 32),  // Ícono con efecto zoom al seleccionar
+              label: 'Catálogo',
+            ),
+            NavigationDestination(
+              icon: Icon(Icons.handshake_outlined, size: 28),
+              selectedIcon: Icon(Icons.handshake, size: 32),
+              label: 'Intercambios',
+            ),
+            NavigationDestination(
+              icon: Icon(Icons.add_circle_outline_rounded, size: 28),
+              selectedIcon: Icon(Icons.add_circle_rounded, size: 32),
+              label: 'Publicar',
+            ),
+            NavigationDestination(
+              icon: Icon(Icons.person_outline, size: 28),
+              selectedIcon: Icon(Icons.person, size: 32),
+              label: 'Mi Perfil',
+            ),
+          ],
+        ),
       ),
     );
   }

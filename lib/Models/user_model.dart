@@ -2,8 +2,9 @@ class AppUser {
   final String id;
   final String name;
   final String email;
-  final String career;       // Ej: Ingeniería de Sistemas, Derecho
-  final String profilePic;   // URL de su foto de perfil
+  final String career;
+  final String profilePic;
+  final String role; // <-- NUEVO: 'student' o 'admin'
 
   AppUser({
     required this.id,
@@ -11,6 +12,7 @@ class AppUser {
     required this.email,
     required this.career,
     this.profilePic = '',
+    this.role = 'student', // Por defecto todos son estudiantes
   });
 
   Map<String, dynamic> toMap() {
@@ -20,6 +22,7 @@ class AppUser {
       'email': email,
       'career': career,
       'profilePic': profilePic,
+      'role': role, // <-- Guardar el rol
     };
   }
 
@@ -30,6 +33,7 @@ class AppUser {
       email: map['email'] ?? '',
       career: map['career'] ?? '',
       profilePic: map['profilePic'] ?? '',
+      role: map['role'] ?? 'student', // <-- Leer el rol (si no existe, es student)
     );
   }
 }

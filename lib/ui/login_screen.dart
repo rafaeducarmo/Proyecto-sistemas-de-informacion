@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../services/auth_service.dart';
-import 'register_screen.dart'; // Importante para la navegación
+import 'register_screen.dart'; 
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -13,11 +13,15 @@ class _LoginScreenState extends State<LoginScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final AuthService _authService = AuthService();
+  
+  // --- NUEVO: ValueNotifier para que no parpadee la pantalla ---
+  final ValueNotifier<bool> _obscurePassword = ValueNotifier<bool>(true);
 
   @override
   void dispose() {
     _emailController.dispose();
     _passwordController.dispose();
+    _obscurePassword.dispose(); // Se debe limpiar de la memoria
     super.dispose();
   }
 
@@ -26,7 +30,6 @@ class _LoginScreenState extends State<LoginScreen> {
     return Scaffold(
       body: Stack(
         children: [
-          // 1. Imagen de fondo del campus abarcando toda la pantalla
           Container(
             decoration: const BoxDecoration(
               image: DecorationImage(
@@ -35,43 +38,28 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
             ),
           ),
-          // 2. Capa semitransparente azul oscura para darle legibilidad al cuadro
           Container(color: const Color(0xFF002B49).withOpacity(0.85)),
-          // 3. El cuadro de Login centrado
           Center(
             child: ConstrainedBox(
-              constraints: const BoxConstraints(
-                maxWidth: 450,
-              ), // Ancho de la tarjeta
+              constraints: const BoxConstraints(maxWidth: 450), 
               child: SingleChildScrollView(
                 padding: const EdgeInsets.all(24.0),
                 child: Card(
                   elevation: 8,
                   color: Colors.white,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
-                  ),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                   child: Padding(
                     padding: const EdgeInsets.all(32.0),
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        // Logo de MetroSwap
-                        Image.asset(
-                          'assets/images/logo_metroswap.png',
-                          height:
-                              80, // Puedes subirle a 100 si lo ves muy pequeño
-                        ),
+                        Image.asset('assets/images/logo_metroswap.png', height: 80),
                         const SizedBox(height: 24),
                         const Text(
                           'Bienvenido a MetroSwap',
                           textAlign: TextAlign.center,
-                          style: TextStyle(
-                            fontSize: 24,
-                            fontWeight: FontWeight.bold,
-                            color: Color(0xFF002B49),
-                          ),
+                          style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Color(0xFF002B49)),
                         ),
                         const SizedBox(height: 8),
                         const Text(
@@ -81,7 +69,6 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                         const SizedBox(height: 32),
 
-                        // --- AQUÍ EMPIEZA TU CÓDIGO ORIGINAL INTACTO ---
                         TextField(
                           controller: _emailController,
                           keyboardType: TextInputType.emailAddress,
@@ -92,66 +79,63 @@ class _LoginScreenState extends State<LoginScreen> {
                           ),
                         ),
                         const SizedBox(height: 16),
-                        TextField(
-                          controller: _passwordController,
-                          obscureText: true,
-                          decoration: const InputDecoration(
-                            labelText: 'Contraseña',
-                            prefixIcon: Icon(Icons.lock_outline),
-                            border: OutlineInputBorder(),
-                          ),
+                        
+                        // --- AQUÍ ESTÁ LA MAGIA DEL VALUENOTIFIER ---
+                        ValueListenableBuilder<bool>(
+                          valueListenable: _obscurePassword,
+                          builder: (context, isObscure, child) {
+                            return TextField(
+                              controller: _passwordController,
+                              obscureText: isObscure,
+                              decoration: InputDecoration(
+                                labelText: 'Contraseña',
+                                prefixIcon: const Icon(Icons.lock_outline),
+                                border: const OutlineInputBorder(),
+                                suffixIcon: IconButton(
+                                  icon: Icon(isObscure ? Icons.visibility_off : Icons.visibility),
+                                  onPressed: () {
+                                    _obscurePassword.value = !isObscure; // Cambia solo este pedacito
+                                  },
+                                ),
+                              ),
+                            );
+                          },
                         ),
+                        // ---------------------------------------------
+                        
                         const SizedBox(height: 24),
                         FilledButton(
                           onPressed: () async {
                             String email = _emailController.text.trim();
                             String password = _passwordController.text.trim();
 
-                            String? error = await _authService.iniciarSesion(
-                              email,
-                              password,
-                            );
+                            String? error = await _authService.iniciarSesion(email, password);
                             if (error != null) {
                               ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Text(error),
-                                  backgroundColor: Colors.red,
-                                ),
+                                SnackBar(content: Text(error), backgroundColor: Colors.red),
                               );
                             } else {
                               ScaffoldMessenger.of(context).showSnackBar(
                                 const SnackBar(
-                                  content: Text(
-                                    "¡Bienvenido Estudiante! Acceso concedido.",
-                                  ),
+                                  content: Text("¡Bienvenido Estudiante! Acceso concedido."),
                                   backgroundColor: Colors.green,
                                 ),
                               );
                             }
                           },
-                          style: FilledButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(vertical: 16),
-                          ),
-                          child: const Text(
-                            'Iniciar Sesión',
-                            style: TextStyle(fontSize: 16),
-                          ),
+                          style: FilledButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 16)),
+                          child: const Text('Iniciar Sesión', style: TextStyle(fontSize: 16)),
                         ),
                         const SizedBox(height: 16),
                         TextButton(
                           onPressed: () {
                             Navigator.push(
                               context,
-                              MaterialPageRoute(
-                                builder: (context) => const RegisterScreen(),
-                              ),
+                              MaterialPageRoute(builder: (context) => const RegisterScreen()),
                             );
                           },
-                          child: const Text(
-                            '¿No tienes cuenta? Regístrate aquí',
-                          ),
+                          child: const Text('¿No tienes cuenta? Regístrate aquí'),
                         ),
-                        // --- FIN DE TU CÓDIGO ORIGINAL ---
                       ],
                     ),
                   ),

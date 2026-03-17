@@ -29,16 +29,6 @@ class AdminScreen extends StatelessWidget {
           title: const Text('Panel de Administración', style: TextStyle(fontWeight: FontWeight.bold)),
           backgroundColor: Colors.redAccent,
           foregroundColor: Colors.white,
-          actions: [
-            IconButton(
-              icon: const Icon(Icons.logout),
-              tooltip: 'Cerrar Sesión Admin',
-              onPressed: () async {
-                await FirebaseAuth.instance.signOut();
-                // Borramos el Navigator, el sistema lo hace solo
-              },
-            ),
-          ],
           bottom: const TabBar(
             labelColor: Colors.white,
             unselectedLabelColor: Colors.white70,

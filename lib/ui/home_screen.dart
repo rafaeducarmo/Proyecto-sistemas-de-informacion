@@ -62,6 +62,41 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
       body: Column(
         children: [
+          // --- NUEVO: BANNER DE BIENVENIDA UNIMET ---
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 16),
+            decoration: BoxDecoration(
+              image: DecorationImage(
+                image: const AssetImage('assets/images/fondo_campus.jpg'),
+                fit: BoxFit.cover,
+                colorFilter: ColorFilter.mode(
+                  const Color(0xFF002855).withOpacity(0.75),
+                  BlendMode.darken,
+                ),
+              ),
+            ),
+            child: const Column(
+              children: [
+                Text(
+                  '¡Éxito en tu trimestre!',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 22,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                SizedBox(height: 8),
+                Text(
+                  'Encuentra el material de ingeniería o recursos que necesitas.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(color: Colors.white70, fontSize: 14),
+                ),
+              ],
+            ),
+          ),
+          // --- FIN DEL BANNER ---
+
           // 1. LA BARRA DE BÚSQUEDA Y FILTROS
           Padding(
             padding: const EdgeInsets.all(16.0),

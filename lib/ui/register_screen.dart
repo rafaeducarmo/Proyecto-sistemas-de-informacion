@@ -33,7 +33,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: AppBar(
-        title: const Text('Registro MetroSwap', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+        title: const Text(
+          'Registro MetroSwap',
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+        ),
         backgroundColor: Colors.transparent,
         elevation: 0,
         iconTheme: const IconThemeData(color: Colors.white),
@@ -57,32 +60,54 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 child: Card(
                   elevation: 8,
                   color: Colors.white,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
                   child: Padding(
                     padding: const EdgeInsets.all(32.0),
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        Image.asset('assets/images/logo_metroswap.png', height: 80),
-                        const SizedBox(height: 24),
+                        Image.asset(
+                          'assets/images/logo_metroswap.png',
+                          height: 150,
+                        ),
+                        const SizedBox(height: 34),
                         const Text(
                           'Crea tu cuenta',
                           textAlign: TextAlign.center,
-                          style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Color(0xFF002855)),
+                          style: TextStyle(
+                            fontSize: 34,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFF002855),
+                          ),
                         ),
                         const SizedBox(height: 32),
 
                         TextField(
                           controller: _emailController,
                           decoration: const InputDecoration(
-                            label: Text.rich(TextSpan(children: [TextSpan(text: 'Correo Institucional (@unimet.edu.ve)'), TextSpan(text: ' *', style: TextStyle(color: Colors.red))])),
+                            label: Text.rich(
+                              TextSpan(
+                                children: [
+                                  TextSpan(
+                                    text:
+                                        'Correo Institucional (@unimet.edu.ve)',
+                                  ),
+                                  TextSpan(
+                                    text: ' *',
+                                    style: TextStyle(color: Colors.red),
+                                  ),
+                                ],
+                              ),
+                            ),
                             prefixIcon: Icon(Icons.email_outlined),
                             border: OutlineInputBorder(),
                           ),
                         ),
                         const SizedBox(height: 16),
-                        
+
                         // CONTRASEÑA 1
                         ValueListenableBuilder<bool>(
                           valueListenable: _obscurePassword,
@@ -91,16 +116,33 @@ class _RegisterScreenState extends State<RegisterScreen> {
                               controller: _passwordController,
                               obscureText: isObscure,
                               decoration: InputDecoration(
-                                label: const Text.rich(TextSpan(children: [TextSpan(text: 'Contraseña (mín. 6 caracteres)'), TextSpan(text: ' *', style: TextStyle(color: Colors.red))])),
+                                label: const Text.rich(
+                                  TextSpan(
+                                    children: [
+                                      TextSpan(
+                                        text: 'Contraseña (mín. 6 caracteres)',
+                                      ),
+                                      TextSpan(
+                                        text: ' *',
+                                        style: TextStyle(color: Colors.red),
+                                      ),
+                                    ],
+                                  ),
+                                ),
                                 prefixIcon: const Icon(Icons.lock_outline),
                                 border: const OutlineInputBorder(),
                                 suffixIcon: IconButton(
-                                  icon: Icon(isObscure ? Icons.visibility_off : Icons.visibility),
-                                  onPressed: () => _obscurePassword.value = !isObscure,
+                                  icon: Icon(
+                                    isObscure
+                                        ? Icons.visibility_off
+                                        : Icons.visibility,
+                                  ),
+                                  onPressed: () =>
+                                      _obscurePassword.value = !isObscure,
                                 ),
                               ),
                             );
-                          }
+                          },
                         ),
                         const SizedBox(height: 16),
 
@@ -112,16 +154,32 @@ class _RegisterScreenState extends State<RegisterScreen> {
                               controller: _confirmPasswordController,
                               obscureText: isObscure,
                               decoration: InputDecoration(
-                                label: const Text.rich(TextSpan(children: [TextSpan(text: 'Confirmar Contraseña'), TextSpan(text: ' *', style: TextStyle(color: Colors.red))])),
+                                label: const Text.rich(
+                                  TextSpan(
+                                    children: [
+                                      TextSpan(text: 'Confirmar Contraseña'),
+                                      TextSpan(
+                                        text: ' *',
+                                        style: TextStyle(color: Colors.red),
+                                      ),
+                                    ],
+                                  ),
+                                ),
                                 prefixIcon: const Icon(Icons.lock_outline),
                                 border: const OutlineInputBorder(),
                                 suffixIcon: IconButton(
-                                  icon: Icon(isObscure ? Icons.visibility_off : Icons.visibility),
-                                  onPressed: () => _obscureConfirmPassword.value = !isObscure,
+                                  icon: Icon(
+                                    isObscure
+                                        ? Icons.visibility_off
+                                        : Icons.visibility,
+                                  ),
+                                  onPressed: () =>
+                                      _obscureConfirmPassword.value =
+                                          !isObscure,
                                 ),
                               ),
                             );
-                          }
+                          },
                         ),
                         const SizedBox(height: 32),
 
@@ -129,26 +187,53 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           onPressed: () async {
                             String email = _emailController.text.trim();
                             String password = _passwordController.text.trim();
-                            String confirmPassword = _confirmPasswordController.text.trim();
+                            String confirmPassword = _confirmPasswordController
+                                .text
+                                .trim();
 
                             if (password != confirmPassword) {
                               if (context.mounted) {
-                                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Las contraseñas no coinciden.'), backgroundColor: Colors.red));
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text(
+                                      'Las contraseñas no coinciden.',
+                                    ),
+                                    backgroundColor: Colors.red,
+                                  ),
+                                );
                               }
                               return;
                             }
 
-                            String? error = await _authService.registrarEstudiante(email, password);
+                            String? error = await _authService
+                                .registrarEstudiante(email, password);
 
                             if (error != null) {
-                              ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(error), backgroundColor: Colors.red));
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(error),
+                                  backgroundColor: Colors.red,
+                                ),
+                              );
                             } else {
-                              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("¡Cuenta creada con éxito! Ya puedes iniciar sesión."), backgroundColor: Colors.green));
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text(
+                                    "¡Cuenta creada con éxito! Ya puedes iniciar sesión.",
+                                  ),
+                                  backgroundColor: Colors.green,
+                                ),
+                              );
                               Navigator.pop(context);
                             }
                           },
-                          style: FilledButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 16)),
-                          child: const Text('Crear Cuenta', style: TextStyle(fontSize: 16)),
+                          style: FilledButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                          ),
+                          child: const Text(
+                            'Crear Cuenta',
+                            style: TextStyle(fontSize: 16),
+                          ),
                         ),
                       ],
                     ),

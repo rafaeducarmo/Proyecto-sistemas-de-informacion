@@ -12,10 +12,17 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   final BookService _bookService = BookService();
-  
+
   String _searchQuery = '';
   String _selectedCategory = 'Todas';
-  final List<String> _categories = ['Todas', 'Ingeniería', 'Salud', 'Artes', 'Ciencias', 'Otros'];
+  final List<String> _categories = [
+    'Todas',
+    'Ingeniería',
+    'Salud',
+    'Artes',
+    'Ciencias',
+    'Otros',
+  ];
   String _quitarAcentos(String texto) {
     const conAcento = 'áéíóúÁÉÍÓÚñÑüÜ';
     const sinAcento = 'aeiouAEIOUnNuU';
@@ -30,19 +37,28 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Padding(
-          padding: const EdgeInsets.only(left: 20.0),
-          child: const Text(
+        backgroundColor: Colors.white,
+        elevation: 2,
+        shadowColor: Colors.black26,
+        title: const Padding(
+          padding: EdgeInsets.only(left: 8.0),
+          child: Text(
             'Catálogo MetroSwap',
             style: TextStyle(
-              fontSize: 28,
+              fontSize: 24,
               fontWeight: FontWeight.w900,
-              color: Color(0xFF5D4037),
+              color: Color(0xFF002855),
               letterSpacing: -0.5,
             ),
           ),
         ),
         centerTitle: false,
+        actions: [
+          Padding(
+            padding: const EdgeInsets.only(right: 16.0),
+            child: Image.asset('assets/images/logo_unimet.png', height: 35),
+          ),
+        ],
       ),
       body: Column(
         children: [
@@ -72,7 +88,9 @@ class _HomeScreenState extends State<HomeScreen> {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 12),
                   decoration: BoxDecoration(
-                    border: Border.all(color: const Color.fromARGB(255, 58, 56, 55)),
+                    border: Border.all(
+                      color: const Color.fromARGB(255, 58, 56, 55),
+                    ),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: DropdownButtonHideUnderline(
@@ -123,14 +141,21 @@ class _HomeScreenState extends State<HomeScreen> {
 
                 final books = snapshot.data!.where((book) {
                   // Limpiamos los textos quitando acentos y mayúsculas
-                  final busquedaLimpia = _quitarAcentos(_searchQuery.toLowerCase());
+                  final busquedaLimpia = _quitarAcentos(
+                    _searchQuery.toLowerCase(),
+                  );
                   final tituloLimpio = _quitarAcentos(book.title.toLowerCase());
-                  final descLimpia = _quitarAcentos(book.description.toLowerCase());
+                  final descLimpia = _quitarAcentos(
+                    book.description.toLowerCase(),
+                  );
 
-                  final matchesSearch = tituloLimpio.contains(busquedaLimpia) || 
-                                        descLimpia.contains(busquedaLimpia);
-                  final matchesCategory = _selectedCategory == 'Todas' || book.category == _selectedCategory;
-                  
+                  final matchesSearch =
+                      tituloLimpio.contains(busquedaLimpia) ||
+                      descLimpia.contains(busquedaLimpia);
+                  final matchesCategory =
+                      _selectedCategory == 'Todas' ||
+                      book.category == _selectedCategory;
+
                   return matchesSearch && matchesCategory;
                 }).toList();
                 if (books.isEmpty) {
@@ -153,7 +178,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   itemCount: books.length,
                   itemBuilder: (context, index) {
                     final book = books[index];
-                    
+
                     // --- AQUÍ ESTÁ LA MAGIA DEL CLIC ---
                     return GestureDetector(
                       onTap: () {
@@ -167,19 +192,29 @@ class _HomeScreenState extends State<HomeScreen> {
                       },
                       child: Card(
                         elevation: 4,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Expanded(
                               child: ClipRRect(
-                                borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
+                                borderRadius: const BorderRadius.vertical(
+                                  top: Radius.circular(12),
+                                ),
                                 child: Image.network(
                                   book.imageUrl,
                                   width: double.infinity,
                                   fit: BoxFit.cover,
                                   errorBuilder: (context, error, stackTrace) =>
-                                      const Center(child: Icon(Icons.broken_image, size: 50, color: Colors.grey)),
+                                      const Center(
+                                        child: Icon(
+                                          Icons.broken_image,
+                                          size: 50,
+                                          color: Colors.grey,
+                                        ),
+                                      ),
                                 ),
                               ),
                             ),
@@ -190,20 +225,27 @@ class _HomeScreenState extends State<HomeScreen> {
                                 children: [
                                   Text(
                                     book.title,
-                                    style: const TextStyle(fontWeight: FontWeight.bold),
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                    ),
                                     maxLines: 1,
                                     overflow: TextOverflow.ellipsis,
                                   ),
                                   const SizedBox(height: 2),
                                   Text(
                                     book.category,
-                                    style: const TextStyle(color: Colors.grey, fontSize: 12),
+                                    style: const TextStyle(
+                                      color: Colors.grey,
+                                      fontSize: 12,
+                                    ),
                                   ),
                                   const SizedBox(height: 4),
                                   Text(
                                     book.condition,
                                     style: TextStyle(
-                                      color: Theme.of(context).colorScheme.primary,
+                                      color: Theme.of(
+                                        context,
+                                      ).colorScheme.primary,
                                       fontSize: 12,
                                       fontWeight: FontWeight.bold,
                                     ),

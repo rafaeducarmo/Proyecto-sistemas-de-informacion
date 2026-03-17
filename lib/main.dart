@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import 'firebase_options.dart';
 import 'package:metroswap/ui/main_screen.dart';
 import 'ui/admin_screen.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 // Rutas a tus pantallas y providers
 import 'ui/login_screen.dart';
@@ -32,11 +33,37 @@ class MetroSwapApp extends StatelessWidget {
       title: 'MetroSwap',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.orange),
-        useMaterial3: true,
+        // Colores principales Unimet
+        primaryColor: const Color(0xFF002855), // Azul Fuerte Unimet
+        scaffoldBackgroundColor: const Color(0xFFF8F9FA), // Gris ultra claro
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: const Color(0xFFF37021), // Naranja Fuerte Unimet
+          primary: const Color(0xFFF37021),
+          secondary: const Color(0xFF002855),
+        ),
+        // Tipografía general usando Montserrat
+        textTheme: GoogleFonts.montserratTextTheme(Theme.of(context).textTheme),
+        // Estilo global para los botones elevados
+        elevatedButtonTheme: ElevatedButtonThemeData(
+          style: ElevatedButton.styleFrom(
+            backgroundColor: const Color(
+              0xFFF37021,
+            ), // Botones naranjas fuertes
+            foregroundColor: Colors.white, // Texto blanco
+            elevation: 2,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8),
+            ),
+            padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 24),
+          ),
+        ),
+        // Estilo global para las barras superiores (AppBars)
         appBarTheme: const AppBarTheme(
-          scrolledUnderElevation: 0.0, // Apaga el cambio de color al hacer scroll
-          backgroundColor: Colors.transparent, // Opcional: si quieres un color fijo, cámbialo aquí
+          backgroundColor: Colors.white, // Barra blanca institucional
+          foregroundColor: Color(0xFF002855), // Letras y botones en azul fuerte
+          elevation: 2,
+          shadowColor: Colors.black26,
+          centerTitle: false,
         ),
       ),
       // StreamBuilder escucha la autenticación en tiempo real
@@ -54,9 +81,9 @@ class MetroSwapApp extends StatelessWidget {
             if (user.email == 'admin@unimet.edu.ve') {
               return const AdminScreen(); // Lo mandamos al panel de control
             }
-            
+
             // Si es un estudiante normal, va al menú principal
-            return const MainScreen(); 
+            return const MainScreen();
           }
           // Si el usuario no ha iniciado sesión
           return const LoginScreen();

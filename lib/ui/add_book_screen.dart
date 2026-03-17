@@ -19,7 +19,7 @@ class _AddBookScreenState extends State<AddBookScreen> {
 
   String _selectedCategory = 'Seleccionar...';
   String _selectedCondition = 'Nuevo';
-  
+
   Uint8List? _imageBytes; // <-- Guardamos la foto en bytes
   final ImagePicker _picker = ImagePicker();
 
@@ -40,7 +40,8 @@ class _AddBookScreenState extends State<AddBookScreen> {
     if (_formKey.currentState!.validate() && _imageBytes != null) {
       final provider = Provider.of<BookProvider>(context, listen: false);
 
-      final currentUserId = FirebaseAuth.instance.currentUser?.uid ?? 'usuario_desconocido';
+      final currentUserId =
+          FirebaseAuth.instance.currentUser?.uid ?? 'usuario_desconocido';
 
       bool success = await provider.uploadBook(
         title: _titleController.text,
@@ -53,7 +54,10 @@ class _AddBookScreenState extends State<AddBookScreen> {
 
       if (success && mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('¡Material publicado con éxito en MetroSwap!'), backgroundColor: Colors.green,),
+          const SnackBar(
+            content: Text('¡Material publicado con éxito en MetroSwap!'),
+            backgroundColor: Colors.green,
+          ),
         );
         // Regresamos a la pestaña de inicio modificando el índice o haciendo pop según lo necesites
         // Como estamos en un BottomNavigationBar, lo mejor es limpiar el form
@@ -66,12 +70,18 @@ class _AddBookScreenState extends State<AddBookScreen> {
         });
       } else if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Error al publicar el material. Revisa tu conexión.'), backgroundColor: Colors.red,),
+          const SnackBar(
+            content: Text('Error al publicar el material. Revisa tu conexión.'),
+            backgroundColor: Colors.red,
+          ),
         );
       }
     } else if (_imageBytes == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Por favor, selecciona una foto del material.'), backgroundColor: Colors.orange,),
+        const SnackBar(
+          content: Text('Por favor, selecciona una foto del material.'),
+          backgroundColor: Colors.orange,
+        ),
       );
     }
   }
@@ -82,20 +92,29 @@ class _AddBookScreenState extends State<AddBookScreen> {
 
     return Scaffold(
       appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 2,
+        shadowColor: Colors.black26,
         title: const Padding(
-          padding: EdgeInsets.only(left: 20.0),
-           child: Text(
+          padding: EdgeInsets.only(left: 8.0),
+          child: Text(
             'Publicar Material',
             style: TextStyle(
-              fontSize: 28,
+              fontSize: 24,
               fontWeight: FontWeight.w900,
-              color: Color(0xFF5D4037),
+              color: Color(0xFF002855),
               letterSpacing: -0.5,
             ),
-           ),
+          ),
         ),
         centerTitle: false,
-            ),
+        actions: [
+          Padding(
+            padding: const EdgeInsets.only(right: 16.0),
+            child: Image.asset('assets/images/logo_unimet.png', height: 35),
+          ),
+        ],
+      ),
       body: isLoading
           ? const Center(child: CircularProgressIndicator())
           : Center(
@@ -104,138 +123,187 @@ class _AddBookScreenState extends State<AddBookScreen> {
                 child: SingleChildScrollView(
                   padding: const EdgeInsets.all(16.0),
                   child: Form(
-                key: _formKey,
-                child: Column(
-                  children: [
-                    GestureDetector(
-                      onTap: _pickImage,
-                      child: Container(
-                        height: 200,
-                        width: double.infinity,
-                        decoration: BoxDecoration(
-                          color: Colors.grey[200],
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: Colors.grey.shade400)
+                    key: _formKey,
+                    child: Column(
+                      children: [
+                        GestureDetector(
+                          onTap: _pickImage,
+                          child: Container(
+                            height: 200,
+                            width: double.infinity,
+                            decoration: BoxDecoration(
+                              color: Colors.grey[200],
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(color: Colors.grey.shade400),
+                            ),
+                            // Usamos Image.memory en lugar de Image.file
+                            child: _imageBytes != null
+                                ? ClipRRect(
+                                    borderRadius: BorderRadius.circular(12),
+                                    child: Image.memory(
+                                      _imageBytes!,
+                                      fit: BoxFit.cover,
+                                    ),
+                                  )
+                                : const Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Icon(
+                                        Icons.add_a_photo,
+                                        size: 50,
+                                        color: Colors.grey,
+                                      ),
+                                      SizedBox(height: 8),
+                                      Text(
+                                        "Toca para subir una foto",
+                                        style: TextStyle(color: Colors.grey),
+                                      ),
+                                    ],
+                                  ),
+                          ),
                         ),
-                        // Usamos Image.memory en lugar de Image.file
-                        child: _imageBytes != null
-                            ? ClipRRect(
-                                borderRadius: BorderRadius.circular(12),
-                                child: Image.memory(
-                                  _imageBytes!,
-                                  fit: BoxFit.cover,
-                                ),
-                              )
-                            : const Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
+                        const SizedBox(height: 20),
+
+                        TextFormField(
+                          controller: _titleController,
+                          decoration: const InputDecoration(
+                            label: Text.rich(
+                              TextSpan(
                                 children: [
-                                  Icon(Icons.add_a_photo, size: 50, color: Colors.grey),
-                                  SizedBox(height: 8),
-                                  Text("Toca para subir una foto", style: TextStyle(color: Colors.grey)),
+                                  TextSpan(text: 'Título del libro o material'),
+                                  TextSpan(
+                                    text: ' *',
+                                    style: TextStyle(color: Colors.red),
+                                  ),
                                 ],
                               ),
-                      ),
-                    ),
-                    const SizedBox(height: 20),
+                            ),
+                            border: OutlineInputBorder(),
+                          ),
+                          validator: (v) => v!.isEmpty ? 'Requerido' : null,
+                        ),
+                        const SizedBox(height: 16),
 
-                    TextFormField(
-                      controller: _titleController,
-                      decoration: const InputDecoration(
-                        label: Text.rich(
-                          TextSpan(
-                            children: [
-                              TextSpan(text: 'Título del libro o material'),
+                        TextFormField(
+                          controller: _descriptionController,
+                          maxLines: 3,
+                          decoration: const InputDecoration(
+                            label: Text.rich(
                               TextSpan(
-                                text: ' *',
-                                style: TextStyle(color: Colors.red),
+                                children: [
+                                  TextSpan(
+                                    text: 'Descripción / Autor / Detalles',
+                                  ),
+                                  TextSpan(
+                                    text: ' *',
+                                    style: TextStyle(color: Colors.red),
+                                  ),
+                                ],
                               ),
-                            ],
+                            ),
+                            border: OutlineInputBorder(),
+                          ),
+                          validator: (v) => v!.isEmpty ? 'Requerido' : null,
+                        ),
+                        const SizedBox(height: 16),
+
+                        DropdownButtonFormField(
+                          value: _selectedCategory,
+                          decoration: const InputDecoration(
+                            label: Text.rich(
+                              TextSpan(
+                                children: [
+                                  TextSpan(text: 'Categoría'),
+                                  TextSpan(
+                                    text: ' *',
+                                    style: TextStyle(color: Colors.red),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            border: OutlineInputBorder(),
+                          ),
+                          items:
+                              [
+                                    'Seleccionar...',
+                                    'Ingeniería',
+                                    'Salud',
+                                    'Artes',
+                                    'Ciencias',
+                                    'Otros',
+                                  ]
+                                  .map(
+                                    (e) => DropdownMenuItem(
+                                      value: e,
+                                      child: Text(e),
+                                    ),
+                                  )
+                                  .toList(),
+                          validator: (val) => val == 'Seleccionar...'
+                              ? 'Requerido: Elija una categoría válida'
+                              : null,
+                          onChanged: (val) => setState(
+                            () => _selectedCategory = val.toString(),
                           ),
                         ),
-                        border: OutlineInputBorder(),
-                      ),
-                      validator: (v) => v!.isEmpty ? 'Requerido' : null,
-                    ),
-                    const SizedBox(height: 16),
+                        const SizedBox(height: 16),
 
-                    TextFormField(
-                      controller: _descriptionController,
-                      maxLines: 3,
-                      decoration: const InputDecoration(
-                        label: Text.rich(
-                          TextSpan(
-                            children: [
-                              TextSpan(text: 'Descripción / Autor / Detalles'),
+                        DropdownButtonFormField(
+                          value: _selectedCondition,
+                          decoration: const InputDecoration(
+                            label: Text.rich(
                               TextSpan(
-                                text: ' *',
-                                style: TextStyle(color: Colors.red),
+                                children: [
+                                  TextSpan(text: 'Condición'),
+                                  TextSpan(
+                                    text: ' *',
+                                    style: TextStyle(color: Colors.red),
+                                  ),
+                                ],
                               ),
-                            ],
+                            ),
+                            border: OutlineInputBorder(),
+                          ),
+                          items:
+                              [
+                                    'Nuevo',
+                                    'Como Nuevo',
+                                    'Buen estado',
+                                    'Deteriorado',
+                                  ]
+                                  .map(
+                                    (e) => DropdownMenuItem(
+                                      value: e,
+                                      child: Text(e),
+                                    ),
+                                  )
+                                  .toList(),
+                          onChanged: (val) => setState(
+                            () => _selectedCondition = val.toString(),
                           ),
                         ),
-                        border: OutlineInputBorder(),
-                      ),
-                      validator: (v) => v!.isEmpty ? 'Requerido' : null,
-                    ),
-                    const SizedBox(height: 16),
+                        const SizedBox(height: 24),
 
-                    DropdownButtonFormField(
-                      value: _selectedCategory,
-                      decoration: const InputDecoration(
-                        label: Text.rich(
-                          TextSpan(
-                            children: [
-                              TextSpan(text: 'Categoría'),
-                              TextSpan(
-                                text: ' *',
-                                style: TextStyle(color: Colors.red),
+                        SizedBox(
+                          width: double.infinity,
+                          height: 50,
+                          child: FilledButton(
+                            onPressed: _submitForm,
+                            child: const Text(
+                              'Publicar Material',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
                               ),
-                            ],
+                            ),
                           ),
                         ),
-                        border: OutlineInputBorder(),
-                      ),
-                      items: ['Seleccionar...', 'Ingeniería', 'Salud', 'Artes', 'Ciencias', 'Otros'].map((e) => DropdownMenuItem(value: e, child: Text(e))).toList(),
-                      validator: (val) => val == 'Seleccionar...' ? 'Requerido: Elija una categoría válida' : null,
-                      onChanged: (val) => setState(() => _selectedCategory = val.toString()),
+                      ],
                     ),
-                    const SizedBox(height: 16),
-
-                    DropdownButtonFormField(
-                      value: _selectedCondition,
-                      decoration: const InputDecoration(
-                        label: Text.rich(
-                          TextSpan(
-                            children: [
-                              TextSpan(text: 'Condición'),
-                              TextSpan(
-                                text: ' *',
-                                style: TextStyle(color: Colors.red),
-                              ),
-                            ],
-                          ),
-                        ),
-                        border: OutlineInputBorder(),
-                      ),
-                      items: ['Nuevo', 'Como Nuevo', 'Buen estado', 'Deteriorado'].map((e) => DropdownMenuItem(value: e, child: Text(e))).toList(),
-                      onChanged: (val) => setState(() => _selectedCondition = val.toString()),
-                    ),
-                    const SizedBox(height: 24),
-
-                    SizedBox(
-                      width: double.infinity,
-                      height: 50,
-                      child: FilledButton(
-                        onPressed: _submitForm,
-                        child: const Text('Publicar Material', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-                      ),
-                    ),
-                  ],
+                  ),
                 ),
               ),
             ),
-          ),
-        ),
     );
   }
 }

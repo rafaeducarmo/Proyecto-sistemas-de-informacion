@@ -16,7 +16,11 @@ class _MyExchangesScreenState extends State<MyExchangesScreen> {
   final String currentUserId = FirebaseAuth.instance.currentUser?.uid ?? '';
 
   // Actualizamos la función para saber si estamos en la pestaña de "Mis Solicitudes"
-  Widget _buildExchangeList(Stream<List<Exchange>> stream, String emptyMessage, bool isMisSolicitudes) {
+  Widget _buildExchangeList(
+    Stream<List<Exchange>> stream,
+    String emptyMessage,
+    bool isMisSolicitudes,
+  ) {
     return StreamBuilder<List<Exchange>>(
       stream: stream,
       builder: (context, snapshot) {
@@ -24,7 +28,12 @@ class _MyExchangesScreenState extends State<MyExchangesScreen> {
           return const Center(child: CircularProgressIndicator());
         }
         if (!snapshot.hasData || snapshot.data!.isEmpty) {
-          return Center(child: Text(emptyMessage, style: const TextStyle(color: Colors.grey)));
+          return Center(
+            child: Text(
+              emptyMessage,
+              style: const TextStyle(color: Colors.grey),
+            ),
+          );
         }
 
         final exchanges = snapshot.data!;
@@ -33,11 +42,14 @@ class _MyExchangesScreenState extends State<MyExchangesScreen> {
             constraints: const BoxConstraints(maxWidth: 800),
             child: ListView.builder(
               padding: const EdgeInsets.all(16),
-          itemCount: exchanges.length,
+              itemCount: exchanges.length,
               itemBuilder: (context, index) {
                 final exchange = exchanges[index];
                 // En vez de un Card simple, llamamos a nuestro nuevo Widget personalizado
-                return ExchangeTile(exchange: exchange, isMisSolicitudes: isMisSolicitudes);
+                return ExchangeTile(
+                  exchange: exchange,
+                  isMisSolicitudes: isMisSolicitudes,
+                );
               },
             ),
           ),
@@ -54,26 +66,29 @@ class _MyExchangesScreenState extends State<MyExchangesScreen> {
         builder: (context) {
           return Scaffold(
             appBar: AppBar(
+              backgroundColor: Colors.white,
+              elevation: 2,
+              shadowColor: Colors.black26,
               title: const Padding(
-                padding: EdgeInsets.only(left: 20.0),
+                padding: EdgeInsets.only(left: 8.0),
                 child: Text(
                   'Mis Intercambios',
                   style: TextStyle(
-                    fontSize: 28,
+                    fontSize: 24,
                     fontWeight: FontWeight.w900,
-                    color: Color(0xFF5D4037),
+                    color: Color(0xFF002855),
                     letterSpacing: -0.5,
                   ),
-                )
-                  ),
+                ),
+              ),
               actions: [
+                // Tu botón original de borrar
                 IconButton(
                   icon: const Icon(Icons.delete_sweep, color: Colors.red),
                   tooltip: 'Limpiar historial de aceptados',
                   onPressed: () async {
                     final tabController = DefaultTabController.of(context);
                     final isMisSolicitudes = tabController.index == 0;
-                    
                     final confirm = await showDialog<bool>(
                       context: context,
                       builder: (ctx) => AlertDialog(
@@ -81,13 +96,18 @@ class _MyExchangesScreenState extends State<MyExchangesScreen> {
                         content: Text(
                           isMisSolicitudes
                               ? '¿Deseas eliminar del historial todas tus solicitudes que ya fueron aceptadas?'
-                              : '¿Deseas eliminar del historial todas las solicitudes recibidas que ya aceptaste?'
+                              : '¿Deseas eliminar del historial todas las solicitudes recibidas que ya aceptaste?',
                         ),
                         actions: [
-                          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancelar')),
+                          TextButton(
+                            onPressed: () => Navigator.pop(ctx, false),
+                            child: const Text('Cancelar'),
+                          ),
                           FilledButton(
                             onPressed: () => Navigator.pop(ctx, true),
-                            style: FilledButton.styleFrom(backgroundColor: Colors.red),
+                            style: FilledButton.styleFrom(
+                              backgroundColor: Colors.red,
+                            ),
                             child: const Text('Limpiar'),
                           ),
                         ],
@@ -96,24 +116,49 @@ class _MyExchangesScreenState extends State<MyExchangesScreen> {
 
                     if (confirm == true && context.mounted) {
                       try {
-                        await _exchangeService.clearAcceptedExchanges(currentUserId, isMisSolicitudes);
+                        await _exchangeService.clearAcceptedExchanges(
+                          currentUserId,
+                          isMisSolicitudes,
+                        );
                         if (context.mounted) {
                           ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Historial limpiado con éxito'), backgroundColor: Colors.green),
+                            const SnackBar(
+                              content: Text('Historial limpiado con éxito'),
+                              backgroundColor: Colors.green,
+                            ),
                           );
                         }
                       } catch (e) {
-                         if (context.mounted) {
+                        if (context.mounted) {
                           ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text('Error al limpiar: $e'), backgroundColor: Colors.red),
+                            SnackBar(
+                              content: Text('Error al limpiar: $e'),
+                              backgroundColor: Colors.red,
+                            ),
                           );
                         }
                       }
                     }
                   },
                 ),
+                // El nuevo Logo de la Unimet
+                Padding(
+                  padding: const EdgeInsets.only(right: 16.0),
+                  child: Image.asset(
+                    'assets/images/logo_unimet.png',
+                    height: 35,
+                  ),
+                ),
               ],
+              // Tus pestañas originales coloreadas
               bottom: const TabBar(
+                labelColor: Color(
+                  0xFF002855,
+                ), // Azul fuerte para el seleccionado
+                unselectedLabelColor: Colors.grey,
+                indicatorColor: Color(
+                  0xFFF37021,
+                ), // Naranja para la línea inferior
                 tabs: [
                   Tab(text: 'Mis Solicitudes (Quiero)'),
                   Tab(text: 'Recibidas (Me piden)'),
@@ -122,18 +167,18 @@ class _MyExchangesScreenState extends State<MyExchangesScreen> {
             ),
             body: TabBarView(
               children: [
-            // Pestaña 1: Lo que yo pido (Soy el requester)
-            _buildExchangeList(
-              _exchangeService.getMisSolicitudes(currentUserId),
-              'No has solicitado ningún material todavía.',
-              true, // isMisSolicitudes = true
-            ),
-            // Pestaña 2: Lo que me piden a mí (Soy el owner)
-            _buildExchangeList(
-              _exchangeService.getSolicitudesRecibidas(currentUserId),
-              'Nadie ha solicitado tus materiales todavía.',
-              false, // isMisSolicitudes = false
-            ),
+                // Pestaña 1: Lo que yo pido (Soy el requester)
+                _buildExchangeList(
+                  _exchangeService.getMisSolicitudes(currentUserId),
+                  'No has solicitado ningún material todavía.',
+                  true, // isMisSolicitudes = true
+                ),
+                // Pestaña 2: Lo que me piden a mí (Soy el owner)
+                _buildExchangeList(
+                  _exchangeService.getSolicitudesRecibidas(currentUserId),
+                  'Nadie ha solicitado tus materiales todavía.',
+                  false, // isMisSolicitudes = false
+                ),
               ],
             ),
           );
@@ -148,17 +193,26 @@ class ExchangeTile extends StatelessWidget {
   final Exchange exchange;
   final bool isMisSolicitudes;
 
-  const ExchangeTile({super.key, required this.exchange, required this.isMisSolicitudes});
+  const ExchangeTile({
+    super.key,
+    required this.exchange,
+    required this.isMisSolicitudes,
+  });
 
   @override
   Widget build(BuildContext context) {
     // Si es mi solicitud, busco al dueño. Si la recibí, busco al que me la pide.
-    final otherUserId = isMisSolicitudes ? exchange.ownerId : exchange.requesterId;
+    final otherUserId = isMisSolicitudes
+        ? exchange.ownerId
+        : exchange.requesterId;
 
     return FutureBuilder(
       // Usamos Future.wait para ir a buscar el Libro y el Usuario al mismo tiempo
       future: Future.wait([
-        FirebaseFirestore.instance.collection('books').doc(exchange.bookId).get(),
+        FirebaseFirestore.instance
+            .collection('books')
+            .doc(exchange.bookId)
+            .get(),
         FirebaseFirestore.instance.collection('users').doc(otherUserId).get(),
       ]),
       builder: (context, AsyncSnapshot<List<DocumentSnapshot>> snapshot) {
@@ -188,36 +242,58 @@ class ExchangeTile extends StatelessWidget {
         final otherUserName = userData?['name'] ?? 'Estudiante desconocido';
 
         // Etiqueta dinámica dependiendo de la pestaña
-        final userLabel = isMisSolicitudes 
-            ? 'Se lo pides a: $otherUserName' 
+        final userLabel = isMisSolicitudes
+            ? 'Se lo pides a: $otherUserName'
             : 'Te lo pide: $otherUserName';
 
         // Formateo de fechas si existen
         String dateLabel = '';
         if (exchange.startDate != null && exchange.endDate != null) {
-          final startStr = "${exchange.startDate!.day}/${exchange.startDate!.month}/${exchange.startDate!.year}";
-          final endStr = "${exchange.endDate!.day}/${exchange.endDate!.month}/${exchange.endDate!.year}";
+          final startStr =
+              "${exchange.startDate!.day}/${exchange.startDate!.month}/${exchange.startDate!.year}";
+          final endStr =
+              "${exchange.endDate!.day}/${exchange.endDate!.month}/${exchange.endDate!.year}";
           dateLabel = '\n📅 $startStr - $endStr';
         }
 
         return Card(
           elevation: 2,
           margin: const EdgeInsets.only(bottom: 12),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
           child: ListTile(
-            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 16,
+              vertical: 8,
+            ),
             leading: bookImage.isNotEmpty
                 ? ClipRRect(
                     borderRadius: BorderRadius.circular(8),
-                    child: Image.network(bookImage, width: 50, height: 70, fit: BoxFit.cover,errorBuilder: (context, error, stackTrace) => const Icon(Icons.image_not_supported, size: 40, color: Colors.grey),),
+                    child: Image.network(
+                      bookImage,
+                      width: 50,
+                      height: 70,
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) => const Icon(
+                        Icons.image_not_supported,
+                        size: 40,
+                        color: Colors.grey,
+                      ),
+                    ),
                   )
                 : const Icon(Icons.book, size: 40, color: Colors.orange),
-            title: Text(bookTitle, style: const TextStyle(fontWeight: FontWeight.bold)),
+            title: Text(
+              bookTitle,
+              style: const TextStyle(fontWeight: FontWeight.bold),
+            ),
             subtitle: Text('$userLabel\nEstado: ${exchange.status}$dateLabel'),
             isThreeLine: true,
             trailing: Chip(
               label: Text(exchange.status),
-              backgroundColor: exchange.status == 'Pendiente' ? Colors.orange.shade100 : Colors.green.shade100,
+              backgroundColor: exchange.status == 'Pendiente'
+                  ? Colors.orange.shade100
+                  : Colors.green.shade100,
             ),
             // --- AQUÍ ESTÁ LA MAGIA DEL CLICK ---
             onTap: () {
@@ -229,7 +305,10 @@ class ExchangeTile extends StatelessWidget {
                     mainAxisSize: MainAxisSize.min,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('Material: $bookTitle', style: const TextStyle(fontWeight: FontWeight.bold)),
+                      Text(
+                        'Material: $bookTitle',
+                        style: const TextStyle(fontWeight: FontWeight.bold),
+                      ),
                       const SizedBox(height: 8),
                       Text(userLabel),
                       const SizedBox(height: 8),
@@ -257,11 +336,16 @@ class ExchangeTile extends StatelessWidget {
                           if (context.mounted) {
                             Navigator.pop(context);
                             ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('¡Intercambio aceptado!'), backgroundColor: Colors.green),
+                              const SnackBar(
+                                content: Text('¡Intercambio aceptado!'),
+                                backgroundColor: Colors.green,
+                              ),
                             );
                           }
                         },
-                        style: FilledButton.styleFrom(backgroundColor: Colors.green),
+                        style: FilledButton.styleFrom(
+                          backgroundColor: Colors.green,
+                        ),
                         child: const Text('Aceptar Solicitud'),
                       ),
                   ],

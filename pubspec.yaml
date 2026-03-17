@@ -40,6 +40,7 @@ dependencies:
   firebase_storage: ^13.1.0
   image_picker: ^1.2.1
   provider: ^6.1.5+1
+  google_fonts: ^8.0.2
 
 dev_dependencies:
   flutter_test:
@@ -58,9 +59,10 @@ dev_dependencies:
 # The following section is specific to Flutter packages.
 flutter:
 
-  # The following line ensures that the Material Icons font is
-  # included with your application, so that you can use the icons in
-  # the material Icons class.
+  assets:
+    - assets/images/fondo_campus.jpg
+    - assets/images/logo_unimet.png
+    - assets/images/logo_metroswap.png
   uses-material-design: true
 
   # To add assets to your application, add an assets section, like this:
